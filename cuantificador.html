@@ -569,6 +569,15 @@
           <button class="btn btn-outline" onclick="addElecArt()">+ Agregar Artefacto</button>
         </div>
         <div id="elec-art-list"></div>
+
+        <div class="subsec" style="margin-top:28px;">
+          <div>
+            <div class="subsec-title">Cable Eléctrico</div>
+            <div class="subsec-hint">Selecciona calibre y metros del tramo · Marca los conductores que lleva (carga viva, neutro, tierra) y cuántos de cada uno</div>
+          </div>
+          <button class="btn btn-outline" onclick="addElecCable()">+ Agregar Cable</button>
+        </div>
+        <div id="elec-cab-list"></div>
       </div>
 
       <!-- ── HIDRÁULICA ── -->
@@ -1151,8 +1160,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0;
-  ['elec-art-list','hidr-art-list','cajreg-list','equip-esp-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0;
+  ['elec-art-list','elec-cab-list','hidr-art-list','cajreg-list','equip-esp-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1318,6 +1327,20 @@ function abrirProyecto(id) {
     card.querySelector('.elec-l').value    = e.l    || '';
   });
   (proj.elecArt || []).forEach(a => addElecArt(a.desc, a.cant, a.precio));
+  (proj.elecCab || []).forEach(ec => {
+    addElecCable();
+    const card = document.getElementById('elec-cab-' + nElecCab);
+    if (!card) return;
+    card.querySelector('.ecab-desc').value    = ec.desc||'';
+    card.querySelector('.ecab-cal').value     = ec.cal||'alambr12';
+    card.querySelector('.ecab-m').value       = ec.m||'';
+    card.querySelector('.ecab-viva').checked    = ec.viva!==false;
+    card.querySelector('.ecab-nviva').value     = ec.nviva||'1';
+    card.querySelector('.ecab-neutro').checked  = ec.neutro!==false;
+    card.querySelector('.ecab-nneutro').value   = ec.nneutro||'1';
+    card.querySelector('.ecab-tierra').checked  = ec.tierra!==false;
+    card.querySelector('.ecab-ntierra').value   = ec.ntierra||'1';
+  });
 
   // Hidráulica
   (proj.hidr || []).forEach(h => {
@@ -1397,7 +1420,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1837,6 +1860,57 @@ function addHidraulico() {
 }
 
 function removeEl(id) { const e=document.getElementById(id); if(e){e.remove();calcAll();} }
+
+// ═══════════════════════════════════════════
+//  CABLE ELÉCTRICO
+// ═══════════════════════════════════════════
+function addElecCable() {
+  nElecCab++;
+  const id = 'elec-cab-' + nElecCab;
+  document.getElementById('elec-cab-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">🔌 Cable ${nElecCab}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg span2"><label>Descripción</label><input type="text" class="ecab-desc" placeholder="Ej. Circuito iluminación planta alta" oninput="saveState()"></div>
+        <div class="fg">
+          <label>Calibre</label>
+          <select class="ecab-cal" onchange="calcAll()">
+            <option value="alambr14">#14 AWG</option>
+            <option value="alambr12" selected>#12 AWG</option>
+            <option value="alambr10">#10 AWG</option>
+            <option value="alambr8">#8 AWG</option>
+            <option value="alambr6">#6 AWG</option>
+            <option value="alambr4">#4 AWG</option>
+            <option value="alambr2">#2 AWG</option>
+          </select>
+        </div>
+        <div class="fg"><label>Metros del tramo</label><input type="number" class="ecab-m" placeholder="0" min="0" step="1" oninput="calcAllD()"></div>
+      </div>
+      <div style="margin-top:12px;padding:10px 12px;background:rgba(0,0,0,0.03);border-radius:8px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:.5px;">Conductores:</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" class="ecab-viva" checked onchange="calcAll()">
+          <span style="color:var(--ink);">Carga viva</span>
+          <span style="font-size:11px;color:var(--ink-mid);">×</span>
+          <input type="number" class="ecab-nviva" value="1" min="1" max="6" step="1" style="width:40px;font-size:12px;background:var(--bg3);border:1px solid var(--div);border-radius:4px;padding:2px 4px;color:var(--ink);" oninput="calcAllD()">
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" class="ecab-neutro" checked onchange="calcAll()">
+          <span style="color:var(--ink);">Neutro</span>
+          <span style="font-size:11px;color:var(--ink-mid);">×</span>
+          <input type="number" class="ecab-nneutro" value="1" min="1" max="6" step="1" style="width:40px;font-size:12px;background:var(--bg3);border:1px solid var(--div);border-radius:4px;padding:2px 4px;color:var(--ink);" oninput="calcAllD()">
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" class="ecab-tierra" checked onchange="calcAll()">
+          <span style="color:var(--ink);">Tierra</span>
+          <span style="font-size:11px;color:var(--ink-mid);">×</span>
+          <input type="number" class="ecab-ntierra" value="1" min="1" max="6" step="1" style="width:40px;font-size:12px;background:var(--bg3);border:1px solid var(--div);border-radius:4px;padding:2px 4px;color:var(--ink);" oninput="calcAllD()">
+        </label>
+      </div>
+      <div id="ecab-res-${nElecCab}" style="margin-top:10px;font-size:12px;color:var(--ink-mid);">—</div>
+    </div>`);
+  calcAll();
+}
 
 // ═══════════════════════════════════════════
 //  ARTEFACTOS ELÉCTRICOS
@@ -2430,6 +2504,26 @@ function _calcAllReal() {
     if (wireEl) wireEl.textContent = wire + ' rollos';
     if (subEl)  subEl.textContent  = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
+  // CABLE ELÉCTRICO
+  (document.getElementById('elec-cab-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n      = card.id.replace('elec-cab-','');
+    const metros = +(card.querySelector('.ecab-m')?.value)||0;
+    const calKey = card.querySelector('.ecab-cal')?.value||'alambr12';
+    const viva   = card.querySelector('.ecab-viva')?.checked   ? (+(card.querySelector('.ecab-nviva')?.value)||1)   : 0;
+    const neutro = card.querySelector('.ecab-neutro')?.checked ? (+(card.querySelector('.ecab-nneutro')?.value)||1) : 0;
+    const tierra = card.querySelector('.ecab-tierra')?.checked ? (+(card.querySelector('.ecab-ntierra')?.value)||1) : 0;
+    const nCond  = viva + neutro + tierra;
+    const totalM = metros * nCond;
+    const rollos = totalM > 0 ? Math.ceil(totalM / 100) : 0;
+    const sub    = rollos * getPrecio(calKey);
+    elecCosto += sub;
+    const resEl = document.getElementById('ecab-res-'+n);
+    if (resEl) resEl.innerHTML =
+      `Total cable: <b style="color:var(--ink)">${totalM} m</b> (${nCond} conductor${nCond!==1?'es':''}: ${[viva?'carga viva×'+viva:'',neutro?'neutro×'+neutro:'',tierra?'tierra×'+tierra:''].filter(Boolean).join(', ')})` +
+      ` &nbsp;·&nbsp; Rollos 100m: <b style="color:var(--ink)">${rollos}</b>` +
+      ` &nbsp;·&nbsp; Subtotal: <span style="color:var(--gold);font-weight:700;">Q ${sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
+  });
+
   set('s-elec-pts', elecPts); set('s-elec-cond', elecCond);
   set('s-elec-w12', elecW12); set('s-elec-w10', elecW10); set('s-elec-caja', elecCajas);
   const elecEl = document.getElementById('s-elec-costo');
@@ -2823,6 +2917,14 @@ function saveState() {
     document.querySelectorAll('#elec-art-list > .card').forEach(c => p.elecArt.push({
       desc: c.querySelector('.ea-desc')?.value||'', cant: c.querySelector('.ea-cant')?.value||'', precio: c.querySelector('.ea-precio')?.value||''
     }));
+    p.elecCab = [];
+    (document.getElementById('elec-cab-list')?.querySelectorAll('.card')||[]).forEach(c => p.elecCab.push({
+      desc: c.querySelector('.ecab-desc')?.value||'', cal: c.querySelector('.ecab-cal')?.value||'alambr12',
+      m: c.querySelector('.ecab-m')?.value||'',
+      viva: c.querySelector('.ecab-viva')?.checked||false,   nviva:  c.querySelector('.ecab-nviva')?.value||'1',
+      neutro: c.querySelector('.ecab-neutro')?.checked||false, nneutro:c.querySelector('.ecab-nneutro')?.value||'1',
+      tierra: c.querySelector('.ecab-tierra')?.checked||false, ntierra:c.querySelector('.ecab-ntierra')?.value||'1',
+    }));
 
     p.hidr = [];
     document.querySelectorAll('#hidraulica-list > .card').forEach(c => p.hidr.push({
@@ -2971,9 +3073,13 @@ const PRICE_DEFS = {
   // Eléctrica
   cond12:    { cat:'⚡ Eléctrica',   label:'Tubo conduit ½"',         unit:'3m',          val:23.01 },
   cond34:    { cat:'⚡ Eléctrica',   label:'Tubo conduit ¾"',         unit:'3m',          val:33.49 },
+  alambr14:  { cat:'⚡ Eléctrica',   label:'Alambre #14',             unit:'rollo 100m',  val:225.00},
   alambr12:  { cat:'⚡ Eléctrica',   label:'Alambre #12',             unit:'rollo 100m',  val:334.42},
   alambr10:  { cat:'⚡ Eléctrica',   label:'Alambre #10',             unit:'rollo 100m',  val:502.14},
   alambr8:   { cat:'⚡ Eléctrica',   label:'Alambre #8',              unit:'rollo 100m',  val:752.71},
+  alambr6:   { cat:'⚡ Eléctrica',   label:'Alambre #6',              unit:'rollo 100m',  val:1150.00},
+  alambr4:   { cat:'⚡ Eléctrica',   label:'Alambre #4',              unit:'rollo 100m',  val:1680.00},
+  alambr2:   { cat:'⚡ Eléctrica',   label:'Alambre #2',              unit:'rollo 100m',  val:2450.00},
   caja_r:    { cat:'⚡ Eléctrica',   label:'Caja rectangular',        unit:'ud',          val:8.39  },
   apagador:  { cat:'⚡ Eléctrica',   label:'Apagador sencillo',       unit:'ud',          val:26.18 },
   tomacorr:  { cat:'⚡ Eléctrica',   label:'Tomacorriente doble',     unit:'ud',          val:29.30 },
