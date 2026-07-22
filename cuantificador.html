@@ -1834,13 +1834,15 @@ function addHidrArt(desc, cant, precio) {
 //  JARDINIZACIÓN
 // ═══════════════════════════════════════════
 const JARD_TIPOS = [
-  { key:'piedrin_cam',  label:'Piedrín blanco — caminamientos', unit:'m²',  profM:0.05, mat:'Volumen piedrín: {vol} m³' },
-  { key:'banqueta',     label:'Fundición banqueta concreto 3000 psi', unit:'m²', espM:0.10, mat:'Volumen concreto: {vol} m³' },
-  { key:'lona_obra',    label:'Lona para obra', unit:'m²', mat:'' },
-  { key:'bordillo',     label:'Bordillo de concreto 3000 psi', unit:'ml', mat:'' },
-  { key:'relleno_grav', label:'Relleno de grava', unit:'m³', mat:'' },
-  { key:'tierra_negra', label:'Relleno tierra negra', unit:'m³', mat:'' },
-  { key:'plantas',      label:'Plantas y plantación', unit:'ud', mat:'' },
+  { key:'piedrin_cam',    label:'Piedrín blanco decorativo — caminamientos', unit:'m²', profM:0.05, mat:'Volumen piedrín: {vol} m³' },
+  { key:'piedrin_nat',    label:'Piedrín color natural — caminamientos',     unit:'m²', profM:0.05, mat:'Volumen piedrín: {vol} m³' },
+  { key:'banqueta',       label:'Fundición banqueta concreto 3000 psi',      unit:'m²', espM:0.10,  mat:'Volumen concreto: {vol} m³' },
+  { key:'lona_obra',      label:'Lona para obra',                            unit:'m²', mat:'' },
+  { key:'bordillo',       label:'Bordillo de concreto 3000 psi',             unit:'ml', mat:'' },
+  { key:'relleno_grav',   label:'Relleno de grava',                          unit:'m³', mat:'' },
+  { key:'tierra_negra',   label:'Relleno tierra negra',                      unit:'m³', mat:'' },
+  { key:'tierra_compact', label:'Tierra de compactación (selecto)',           unit:'m³', mat:'' },
+  { key:'plantas',        label:'Plantas y plantación',                      unit:'ud', mat:'' },
 ];
 
 const CER_FORMATOS = [
@@ -2785,8 +2787,14 @@ const PRICE_DEFS = {
   mo_elec:   { cat:'👷 Mano de Obra', label:'Instalación eléctrica',  unit:'punto', val:188.18},
   mo_hidr:   { cat:'👷 Mano de Obra', label:'Instalación hidráulica', unit:'punto', val:156.47},
   // Jardinización
-  lona_obra: { cat:'🌿 Jardinización', label:'Lona para obra',                unit:'m²', val:15.00 },
-  bordillo:  { cat:'🌿 Jardinización', label:'Bordillo de concreto 3000 psi', unit:'ml', val:45.00 },
+  lona_obra:      { cat:'🌿 Jardinización', label:'Lona para obra',                    unit:'m²', val:15.00  },
+  bordillo:       { cat:'🌿 Jardinización', label:'Bordillo de concreto 3000 psi',     unit:'ml', val:45.00  },
+  piedrin_cam:    { cat:'🌿 Jardinización', label:'Piedrín blanco decorativo',          unit:'m³', val:900.00 },
+  piedrin_nat:    { cat:'🌿 Jardinización', label:'Piedrín color natural decorativo',   unit:'m³', val:450.00 },
+  tierra_negra:   { cat:'🌿 Jardinización', label:'Tierra negra',                       unit:'m³', val:325.00 },
+  tierra_compact: { cat:'🌿 Jardinización', label:'Tierra de compactación (selecto)',   unit:'m³', val:175.00 },
+  relleno_grav:   { cat:'🌿 Jardinización', label:'Relleno de grava',                   unit:'m³', val:350.00 },
+  plantas:        { cat:'🌿 Jardinización', label:'Plantas y plantación',               unit:'ud', val:25.00  },
 };
 
 let _precioCache = null;
