@@ -880,6 +880,7 @@
         <div class="sum-row"><span class="sum-name">Sum. e inst. drenaje 3"</span><span><span id="s-hidr-d3" class="sum-val zero">0</span><span class="sum-unit">tubos 6m</span></span></div>
         <div class="sum-row"><span class="sum-name">Sum. e inst. drenaje 4"</span><span><span id="s-hidr-d4" class="sum-val zero">0</span><span class="sum-unit">tubos 6m</span></span></div>
         <div class="sum-row"><span class="sum-name">Sum. e inst. accesorios</span><span><span id="s-hidr-acc" class="sum-val zero">0</span><span class="sum-unit">ud</span></span></div>
+        <div class="sum-row"><span class="sum-name">Cajas de registro</span><span class="sum-val" id="s-cajreg-costo">Q 0.00</span></div>
         <div class="sum-total-box" style="margin-top:6px;">
           <div class="sum-row"><span class="sum-name">TOTAL HIDRÁULICA</span><span class="sum-val" id="s-hidr-costo">Q 0.00</span></div>
         </div>
@@ -2368,8 +2369,6 @@ function _calcAllReal() {
   set('s-hidr-a12', hidrTubs.a12); set('s-hidr-a34', hidrTubs.a34); set('s-hidr-a1', hidrTubs.a1);
   set('s-hidr-d2',  hidrTubs.d2);  set('s-hidr-d3',  hidrTubs.d3);  set('s-hidr-d4', hidrTubs.d4);
   set('s-hidr-acc', hidrAcc);
-  const hidrEl = document.getElementById('s-hidr-costo');
-  if (hidrEl) hidrEl.textContent = 'Q '+hidrCosto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   // ARTEFACTOS ELÉCTRICOS (directo: sin imp/ind; con admin+util+iva)
   let costoElecArt = 0;
@@ -2423,7 +2422,6 @@ function _calcAllReal() {
     ) * cant;
 
     costoCajReg += sub;
-    hidrCosto   += sub;
 
     const matEl = document.getElementById('cajreg-mat-'+n);
     if (matEl) matEl.innerHTML =
@@ -2432,6 +2430,12 @@ function _calcAllReal() {
     const subEl = document.getElementById('cajreg-sub-'+n);
     if (subEl) subEl.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
+
+  hidrCosto += costoCajReg;
+  const cajregEl = document.getElementById('s-cajreg-costo');
+  if (cajregEl) cajregEl.textContent = 'Q '+costoCajReg.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const hidrEl = document.getElementById('s-hidr-costo');
+  if (hidrEl) hidrEl.textContent = 'Q '+hidrCosto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   // ARTEFACTOS SANITARIOS (mismo esquema)
   let costoHidrArt = 0;
