@@ -650,7 +650,7 @@
         <div class="card" style="margin-bottom:20px;">
           <div class="card-title" style="margin-bottom:12px;">Repello y Pintura</div>
           <div class="fgrid">
-            <div class="fg"><label>Área adicional repello (m²)</label><input type="number" id="repello-extra" placeholder="0" min="0" step="0.5" oninput="calcAll()"></div>
+            <div class="fg"><label>Área adicional repello (m²)</label><input type="number" id="repello-extra" placeholder="0" min="0" step="0.5" oninput="calcAllD()"></div>
             <div class="fg">
               <label>Incluir cielo (losa inferior)</label>
               <select id="repello-cielo" onchange="calcAll()">
@@ -694,8 +694,8 @@
         <div class="info-block-title">Datos Generales</div>
         <div class="card">
           <div class="fgrid">
-            <div class="fg span2"><label>Nombre del Proyecto</label><input type="text" id="p-nombre" placeholder="Ej. Casa Habitación — Zona 15" oninput="calcAll()"></div>
-            <div class="fg"><label>Cliente</label><input type="text" id="p-cliente" placeholder="Nombre del cliente" oninput="calcAll()"></div>
+            <div class="fg span2"><label>Nombre del Proyecto</label><input type="text" id="p-nombre" placeholder="Ej. Casa Habitación — Zona 15" oninput="calcAllD()"></div>
+            <div class="fg"><label>Cliente</label><input type="text" id="p-cliente" placeholder="Nombre del cliente" oninput="calcAllD()"></div>
             <div class="fg"><label>Fecha</label><input type="date" id="p-fecha"></div>
             <div class="fg">
               <label>Tipo de Proyecto</label>
@@ -1397,7 +1397,7 @@ function addPrelim() {
         </div>
         <div class="fg">
           <label>Cantidad</label>
-          <input type="number" class="pr-cant" placeholder="1" min="0" step="0.01" oninput="calcAll()">
+          <input type="number" class="pr-cant" placeholder="1" min="0" step="0.01" oninput="calcAllD()">
         </div>
         <div class="fg span2" id="pr-manual-desc-g-${nPrelim}" style="display:none;">
           <label>Descripción del trabajo</label>
@@ -1405,7 +1405,7 @@ function addPrelim() {
         </div>
         <div class="fg" id="pr-manual-g-${nPrelim}" style="display:none;">
           <label>Precio unitario (Q)</label>
-          <input type="number" class="pr-precio" placeholder="0.00" min="0" step="0.01" oninput="calcAll()">
+          <input type="number" class="pr-precio" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()">
         </div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
@@ -1439,10 +1439,10 @@ function addPared() {
         <button class="btn-rm" onclick="removeEl('${id}')">×</button>
       </div>
       <div class="fgrid">
-        <div class="fg"><label>Código de Montaje</label><input type="text" class="p-codigo" placeholder="Ej. M-01" oninput="calcAll()"></div>
+        <div class="fg"><label>Código de Montaje</label><input type="text" class="p-codigo" placeholder="Ej. M-01" oninput="calcAllD()"></div>
         <div class="fg span2"><label>Descripción</label><input type="text" class="p-desc" placeholder="Ej. Fachada Norte" oninput="saveState()"></div>
-        <div class="fg"><label>Longitud (m)</label><input type="number" class="p-largo" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Altura (m)</label><input type="number" class="p-alto" placeholder="2.60" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Longitud (m)</label><input type="number" class="p-largo" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Altura (m)</label><input type="number" class="p-alto" placeholder="2.60" min="0" step="0.01" oninput="calcAllD()"></div>
         <div class="fg">
           <label>Tipo de Block</label>
           <select class="p-tipo" onchange="calcAll()">
@@ -1480,8 +1480,8 @@ function addVano(pn) {
   document.getElementById('vanos-' + pn).insertAdjacentHTML('beforeend', `
     <div class="vano-row" id="${vid}">
       <input type="text" placeholder="Puerta / Ventana">
-      <input type="number" class="v-ancho" placeholder="Ancho m" min="0" step="0.01" oninput="calcAll()">
-      <input type="number" class="v-alto"  placeholder="Alto m"  min="0" step="0.01" oninput="calcAll()">
+      <input type="number" class="v-ancho" placeholder="Ancho m" min="0" step="0.01" oninput="calcAllD()">
+      <input type="number" class="v-alto"  placeholder="Alto m"  min="0" step="0.01" oninput="calcAllD()">
       <button class="btn-rm" onclick="removeEl('${vid}');calcAll()">×</button>
     </div>`);
   calcAll();
@@ -1504,8 +1504,8 @@ function addColumna() {
             <option value="0.30x0.30">30×30 cm</option><option value="0.20x0.30">20×30 cm</option>
           </select>
         </div>
-        <div class="fg"><label>Altura (m)</label><input type="number" class="col-h" placeholder="2.80" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Cantidad</label><input type="number" class="col-n" value="1" min="1" oninput="calcAll()"></div>
+        <div class="fg"><label>Altura (m)</label><input type="number" class="col-h" placeholder="2.80" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="col-n" value="1" min="1" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Volumen: <span id="col-vol-${nCol}" style="color:var(--ink);font-weight:600;">0.00 m³</span>
@@ -1533,8 +1533,8 @@ function addViga() {
             <option value="0.20x0.30">20×30 cm</option><option value="0.25x0.35">25×35 cm</option>
           </select>
         </div>
-        <div class="fg"><label>Longitud total (m)</label><input type="number" class="vig-l" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Cantidad</label><input type="number" class="vig-n" value="1" min="1" oninput="calcAll()"></div>
+        <div class="fg"><label>Longitud total (m)</label><input type="number" class="vig-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="vig-n" value="1" min="1" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Volumen: <span id="vig-vol-${nVig}" style="color:var(--ink);font-weight:600;">0.00 m³</span>
@@ -1560,10 +1560,10 @@ function addCimiento() {
             <option value="corrido">Corrido</option><option value="zapata">Zapata aislada</option>
           </select>
         </div>
-        <div class="fg"><label>Ancho (m)</label><input type="number" class="cim-a" placeholder="0.40" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Peralte (m)</label><input type="number" class="cim-p" placeholder="0.20" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg" id="cim-l-g-${n}"><label>Longitud total (m)</label><input type="number" class="cim-l" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg" id="cim-n-g-${n}" style="display:none;"><label>Cantidad de zapatas</label><input type="number" class="cim-n" value="1" min="1" oninput="calcAll()"></div>
+        <div class="fg"><label>Ancho (m)</label><input type="number" class="cim-a" placeholder="0.40" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Peralte (m)</label><input type="number" class="cim-p" placeholder="0.20" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg" id="cim-l-g-${n}"><label>Longitud total (m)</label><input type="number" class="cim-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg" id="cim-n-g-${n}" style="display:none;"><label>Cantidad de zapatas</label><input type="number" class="cim-n" value="1" min="1" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Volumen: <span id="cim-vol-${n}" style="color:var(--ink);font-weight:600;">0.00 m³</span>
@@ -1600,8 +1600,8 @@ function addLosa() {
             <option value="maciza">Maciza</option><option value="vigueta">Vigueta + bovedilla</option>
           </select>
         </div>
-        <div class="fg"><label>Largo (m)</label><input type="number" class="losa-l" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Ancho (m)</label><input type="number" class="losa-a" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Largo (m)</label><input type="number" class="losa-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Ancho (m)</label><input type="number" class="losa-a" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
         <div class="fg"><label>Espesor</label>
           <select class="losa-e" onchange="calcAll()">
             <option value="0.10">10 cm</option><option value="0.12" selected>12 cm (estándar)</option>
@@ -1632,10 +1632,10 @@ function addCerPiso() {
         <div class="fg span2"><label>Descripción / Ambiente</label><input type="text" class="cp-desc" placeholder="Ej. Sala-comedor" oninput="saveState()"></div>
         <div class="fg span2"><label>Acabado / Material</label><input type="text" class="cp-acabado" placeholder="Ej. Porcelanato 60×60 Gris mate" oninput="saveState()"></div>
         <div class="fg"><label>Formato del tile</label><select class="cp-formato" onchange="calcAll()">${fmtOpts}</select></div>
-        <div class="fg"><label>Precio por m² (Q)</label><input type="number" class="cp-pm2" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Largo (m)</label><input type="number" class="cp-l" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Ancho (m)</label><input type="number" class="cp-a" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>O área directa (m²)</label><input type="number" class="cp-d" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Precio por m² (Q)</label><input type="number" class="cp-pm2" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Largo (m)</label><input type="number" class="cp-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Ancho (m)</label><input type="number" class="cp-a" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>O área directa (m²)</label><input type="number" class="cp-d" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Área c/desp.: <span id="cp-area-${nCP}" style="color:var(--ink);font-weight:600;">0.00 m²</span>
@@ -1660,10 +1660,10 @@ function addCerPared() {
         <div class="fg span2"><label>Descripción / Ambiente</label><input type="text" class="cpar-desc" placeholder="Ej. Baño principal" oninput="saveState()"></div>
         <div class="fg span2"><label>Acabado / Material</label><input type="text" class="cpar-acabado" placeholder="Ej. Cerámica 30×60 Mármol blanco" oninput="saveState()"></div>
         <div class="fg"><label>Formato del tile</label><select class="cpar-formato" onchange="calcAll()">${fmtOpts}</select></div>
-        <div class="fg"><label>Precio por m² (Q)</label><input type="number" class="cpar-pm2" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Área (m²)</label><input type="number" class="cpar-ar" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Altura cerámica (m)</label><input type="number" class="cpar-h" placeholder="2.10" min="0" step="0.01" oninput="calcAll()"></div>
-        <div class="fg"><label>Perímetro (m) — opcional</label><input type="number" class="cpar-p" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Precio por m² (Q)</label><input type="number" class="cpar-pm2" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Área (m²)</label><input type="number" class="cpar-ar" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Altura cerámica (m)</label><input type="number" class="cpar-h" placeholder="2.10" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Perímetro (m) — opcional</label><input type="number" class="cpar-p" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Área c/desp.: <span id="cpar-area-${nCPar}" style="color:var(--ink);font-weight:600;">0.00 m²</span>
@@ -1689,7 +1689,7 @@ function addCarpinteria() {
       <div class="fgrid">
         <div class="fg span2"><label>Descripción</label><input type="text" class="carp-desc" placeholder="Ej. Ventanas de aluminio" oninput="saveState()"></div>
         <div class="fg span2"><label>Proveedor (opcional)</label><input type="text" class="carp-prov" placeholder="Nombre del proveedor" oninput="saveState()"></div>
-        <div class="fg"><label>Monto contratado (Q)</label><input type="number" class="carp-monto" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Monto contratado (Q)</label><input type="number" class="carp-monto" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Monto fijo: <span id="carp-sub-${nCarp}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
@@ -1709,7 +1709,7 @@ function addHerreria() {
       <div class="fgrid">
         <div class="fg span2"><label>Descripción</label><input type="text" class="herr-desc" placeholder="Ej. Portón eléctrico" oninput="saveState()"></div>
         <div class="fg span2"><label>Proveedor (opcional)</label><input type="text" class="herr-prov" placeholder="Nombre del proveedor" oninput="saveState()"></div>
-        <div class="fg"><label>Monto contratado (Q)</label><input type="number" class="herr-monto" placeholder="0.00" min="0" step="0.01" oninput="calcAll()"></div>
+        <div class="fg"><label>Monto contratado (Q)</label><input type="number" class="herr-monto" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Monto fijo: <span id="herr-sub-${nHerr}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
@@ -1739,8 +1739,8 @@ function addElectrico() {
             <option value="esp">Especial / 220V</option>
           </select>
         </div>
-        <div class="fg"><label>Nº de puntos</label><input type="number" class="elec-pts" placeholder="1" min="1" step="1" oninput="calcAll()"></div>
-        <div class="fg"><label>Longitud circuito (m)</label><input type="number" class="elec-l" placeholder="0.00" min="0" step="0.5" oninput="calcAll()"></div>
+        <div class="fg"><label>Nº de puntos</label><input type="number" class="elec-pts" placeholder="1" min="1" step="1" oninput="calcAllD()"></div>
+        <div class="fg"><label>Longitud circuito (m)</label><input type="number" class="elec-l" placeholder="0.00" min="0" step="0.5" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Conduit: <span id="elec-cond-${nElec}" style="color:var(--ink);font-weight:600;">0 tubos</span>
@@ -1773,8 +1773,8 @@ function addHidraulico() {
             <option value="d4">Drenaje 4"</option>
           </select>
         </div>
-        <div class="fg"><label>Longitud (m)</label><input type="number" class="hidr-l" placeholder="0.00" min="0" step="0.5" oninput="calcAll()"></div>
-        <div class="fg"><label>Accesorios (codos/tees)</label><input type="number" class="hidr-acc" placeholder="0" min="0" step="1" oninput="calcAll()"></div>
+        <div class="fg"><label>Longitud (m)</label><input type="number" class="hidr-l" placeholder="0.00" min="0" step="0.5" oninput="calcAllD()"></div>
+        <div class="fg"><label>Accesorios (codos/tees)</label><input type="number" class="hidr-acc" placeholder="0" min="0" step="1" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Tubos 6m: <span id="hidr-tub-${nHidr}" style="color:var(--ink);font-weight:600;">0</span>
@@ -1797,8 +1797,8 @@ function addElecArt(desc, cant, precio) {
       <div class="card-head"><span class="card-title">💡 Artefacto ${nElecArt}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
       <div class="fgrid">
         <div class="fg span2"><label>Descripción</label><input type="text" class="ea-desc" placeholder="Ej. Lámpara LED panel 18W, Apagador doble, Placa tomacorriente" value="${desc||''}" oninput="saveState()"></div>
-        <div class="fg"><label>Cantidad</label><input type="number" class="ea-cant" placeholder="0" min="0" step="1" value="${cant||''}" oninput="calcAll()"></div>
-        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="ea-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAll()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="ea-cant" placeholder="0" min="0" step="1" value="${cant||''}" oninput="calcAllD()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="ea-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Subtotal: <span id="ea-sub-${nElecArt}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
@@ -1819,8 +1819,8 @@ function addHidrArt(desc, cant, precio) {
       <div class="card-head"><span class="card-title">🚽 Artefacto ${nHidrArt}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
       <div class="fgrid">
         <div class="fg span2"><label>Descripción</label><input type="text" class="ha-desc" placeholder="Ej. Inodoro dual flush, Lavamanos empotrado, Ducha eléctrica" value="${desc||''}" oninput="saveState()"></div>
-        <div class="fg"><label>Cantidad</label><input type="number" class="ha-cant" placeholder="0" min="0" step="1" value="${cant||''}" oninput="calcAll()"></div>
-        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="ha-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAll()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="ha-cant" placeholder="0" min="0" step="1" value="${cant||''}" oninput="calcAllD()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="ha-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Subtotal: <span id="ha-sub-${nHidrArt}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
@@ -1870,7 +1870,7 @@ function addJard(tipo, qty, precio, nota) {
           </select>
         </div>
         <div class="fg"><label>Cantidad / Área</label><input type="number" class="jard-qty" placeholder="0.00" min="0" step="0.01" value="${qty||''}" oninput="calcJard(this.closest('.card').querySelector('.jard-tipo'),'${nJard}')"></div>
-        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="jard-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAll()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="jard-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
         <div class="fg span2"><label>Nota (opcional)</label><input type="text" class="jard-nota" placeholder="Observaciones..." value="${nota||''}" oninput="saveState()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
@@ -1928,7 +1928,7 @@ function addConsultor(nombre, cargo, monto, nota) {
       <div class="fgrid">
         <div class="fg span2"><label>Nombre</label><input type="text" class="cons-nombre" placeholder="Nombre del técnico o consultor" value="${nombre||''}" oninput="saveState()"></div>
         <div class="fg"><label>Cargo / Especialidad</label><input type="text" class="cons-cargo" placeholder="Ej. Residente de obra, Ing. eléctrico, Ing. estructural" value="${cargo||''}" oninput="saveState()"></div>
-        <div class="fg"><label>Honorarios (Q)</label><input type="number" class="cons-monto" placeholder="0.00" min="0" step="0.01" value="${monto||''}" oninput="calcAll()"></div>
+        <div class="fg"><label>Honorarios (Q)</label><input type="number" class="cons-monto" placeholder="0.00" min="0" step="0.01" value="${monto||''}" oninput="calcAllD()"></div>
         <div class="fg span2"><label>Nota</label><input type="text" class="cons-nota" placeholder="Alcance de su participación" value="${nota||''}" oninput="saveState()"></div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
