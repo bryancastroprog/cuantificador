@@ -613,6 +613,15 @@
           <button class="btn btn-outline" onclick="addEquipoEsp()">+ Agregar Equipo</button>
         </div>
         <div id="equip-esp-list"></div>
+
+        <div class="subsec" style="margin-top:28px;">
+          <div>
+            <div class="subsec-title">Tubería</div>
+            <div class="subsec-hint">Selecciona tipo y metros lineales · El sistema calcula tubos de 6m y costo de material</div>
+          </div>
+          <button class="btn btn-outline" onclick="addTuboHidr()">+ Agregar Tubería</button>
+        </div>
+        <div id="tubo-hidr-list"></div>
       </div>
 
       <!-- ── CARPINTERÍA ── -->
@@ -899,6 +908,7 @@
         <div class="sum-row"><span class="sum-name">Sum. e inst. drenaje 4"</span><span><span id="s-hidr-d4" class="sum-val zero">0</span><span class="sum-unit">tubos 6m</span></span></div>
         <div class="sum-row"><span class="sum-name">Sum. e inst. accesorios</span><span><span id="s-hidr-acc" class="sum-val zero">0</span><span class="sum-unit">ud</span></span></div>
         <div class="sum-row"><span class="sum-name">Cajas de registro</span><span class="sum-val" id="s-cajreg-costo">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name">Material tubería</span><span class="sum-val" id="s-tubo-hidr-costo">Q 0.00</span></div>
         <div class="sum-total-box" style="margin-top:6px;">
           <div class="sum-row"><span class="sum-name">TOTAL HIDRÁULICA</span><span class="sum-val" id="s-hidr-costo">Q 0.00</span></div>
         </div>
@@ -1160,8 +1170,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0;
-  ['elec-art-list','elec-cab-list','hidr-art-list','cajreg-list','equip-esp-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0;
+  ['elec-art-list','elec-cab-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1373,6 +1383,8 @@ function abrirProyecto(id) {
     card.querySelector('.cajreg-n').value     = cr.n     || '1';
   });
 
+  (proj.tuboHidr || []).forEach(t => addTuboHidr(t.desc, t.metros, t.tipKey));
+
   // Jardinización
   (proj.jard || []).forEach(j => addJard(j.tipo, j.qty, j.precio, j.nota));
 
@@ -1420,7 +1432,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1908,6 +1920,35 @@ function addElecCable() {
         </label>
       </div>
       <div id="ecab-res-${nElecCab}" style="margin-top:10px;font-size:12px;color:var(--ink-mid);">—</div>
+    </div>`);
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  TUBERÍA HIDRÁULICA
+// ═══════════════════════════════════════════
+const TUBO_HIDR_TIPOS = [
+  { key:'pvc_a12', label:'Tubo PVC ½"  — agua fría/caliente' },
+  { key:'pvc_a34', label:'Tubo PVC ¾"  — agua fría/caliente' },
+  { key:'pvc_a1',  label:'Tubo PVC 1"  — agua fría/caliente' },
+  { key:'pvc_d2',  label:'Tubo PVC 2"  — drenaje'            },
+  { key:'pvc_d3',  label:'Tubo PVC 3"  — drenaje'            },
+  { key:'pvc_d4',  label:'Tubo PVC 4"  — drenaje'            },
+];
+function addTuboHidr(desc, metros, tipKey) {
+  nTuboHidr++;
+  const id   = 'tubo-hidr-' + nTuboHidr;
+  const opts = TUBO_HIDR_TIPOS.map(t =>
+    `<option value="${t.key}"${(tipKey||'pvc_a12')===t.key?' selected':''}>${t.label}</option>`).join('');
+  document.getElementById('tubo-hidr-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">🔩 Tubería ${nTuboHidr}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg span2"><label>Descripción</label><input type="text" class="thdr-desc" placeholder="Ej. Red agua fría planta baja, Drenaje cocina" value="${desc||''}" oninput="saveState()"></div>
+        <div class="fg"><label>Tipo de tubo</label><select class="thdr-tipo" onchange="calcAll()">${opts}</select></div>
+        <div class="fg"><label>Metros lineales</label><input type="number" class="thdr-m" placeholder="0" min="0" step="0.5" value="${metros||''}" oninput="calcAllD()"></div>
+      </div>
+      <div id="thudr-res-${nTuboHidr}" style="margin-top:10px;font-size:12px;color:var(--ink-mid);">—</div>
     </div>`);
   calcAll();
 }
@@ -2621,6 +2662,23 @@ function _calcAllReal() {
   hidrCosto += costoCajReg;
   const cajregEl = document.getElementById('s-cajreg-costo');
   if (cajregEl) cajregEl.textContent = 'Q '+costoCajReg.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // TUBERÍA HIDRÁULICA
+  let costoTuboHidr = 0;
+  (document.getElementById('tubo-hidr-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n      = card.id.replace('tubo-hidr-','');
+    const metros = +(card.querySelector('.thdr-m')?.value)||0;
+    const tipKey = card.querySelector('.thdr-tipo')?.value||'pvc_a12';
+    const tubos  = metros > 0 ? Math.ceil(metros / 6) : 0;
+    const sub    = tubos * getPrecio(tipKey);
+    costoTuboHidr += sub;
+    const resEl = document.getElementById('thudr-res-'+n);
+    if (resEl) resEl.innerHTML =
+      `Tubos 6m: <b style="color:var(--ink)">${tubos}</b>` +
+      ` &nbsp;·&nbsp; Subtotal: <span style="color:var(--gold);font-weight:700;">Q ${sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
+  });
+  hidrCosto += costoTuboHidr;
+  const tuboHidrEl = document.getElementById('s-tubo-hidr-costo');
+  if (tuboHidrEl) tuboHidrEl.textContent = 'Q '+costoTuboHidr.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   const hidrEl = document.getElementById('s-hidr-costo');
   if (hidrEl) hidrEl.textContent = 'Q '+hidrCosto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -2953,6 +3011,12 @@ function saveState() {
       ancho: c.querySelector('.cajreg-ancho')?.value||'',
       alto:  c.querySelector('.cajreg-alto')?.value||'',
       n:     c.querySelector('.cajreg-n')?.value||'1'
+    }));
+    p.tuboHidr = [];
+    (document.getElementById('tubo-hidr-list')?.querySelectorAll('.card')||[]).forEach(c => p.tuboHidr.push({
+      desc:   c.querySelector('.thdr-desc')?.value||'',
+      metros: c.querySelector('.thdr-m')?.value||'',
+      tipKey: c.querySelector('.thdr-tipo')?.value||'pvc_a12'
     }));
 
     p.jard = [];
