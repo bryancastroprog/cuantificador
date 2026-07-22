@@ -1297,7 +1297,15 @@ function abrirProyecto(id) {
     card.querySelector('.losa-tipo').value         = l.tipo || 'maciza';
     card.querySelector('.losa-l').value            = l.l    || '';
     card.querySelector('.losa-a').value            = l.a    || '';
-    card.querySelector('.losa-e').value            = l.e    || '0.12';
+    card.querySelector('.losa-e').value            = l.e    || '0.05';
+    if (l.tipo === 'vigueta') {
+      const extra = document.getElementById('vig-extra-'+nLosa);
+      if (extra) extra.style.display = 'block';
+      if (l.vigSep) card.querySelector('.vig-sep').value         = l.vigSep;
+      if (l.vigMl)  card.querySelector('.vig-precio-ml').value   = l.vigMl;
+      if (l.vigBov) card.querySelector('.vig-precio-bov').value  = l.vigBov;
+      if (l.vigMo)  card.querySelector('.vig-mo').value          = l.vigMo;
+    }
   });
 
   // Cerámica piso
@@ -1699,34 +1707,56 @@ function toggleCim(n) {
 // ═══════════════════════════════════════════
 //  LOSAS
 // ═══════════════════════════════════════════
+function losaTypeChange(sel, n) {
+  const extra = document.getElementById('vig-extra-'+n);
+  if (extra) extra.style.display = sel.value === 'vigueta' ? 'block' : 'none';
+  calcAll();
+}
 function addLosa() {
   nLosa++;
-  const id = 'losa-' + nLosa;
+  const n = nLosa;
+  const id = 'losa-' + n;
   document.getElementById('losas-list').insertAdjacentHTML('beforeend', `
     <div class="card" id="${id}">
-      <div class="card-head"><span class="card-title">Losa ${nLosa}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="card-head"><span class="card-title">Losa ${n}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
       <div class="fgrid">
         <div class="fg span2"><label>Descripción</label><input type="text" placeholder="Ej. Losa nivel 1" oninput="saveState()"></div>
         <div class="fg"><label>Tipo</label>
-          <select class="losa-tipo" onchange="calcAll()">
+          <select class="losa-tipo" onchange="losaTypeChange(this,${n})">
             <option value="maciza">Maciza</option><option value="vigueta">Vigueta + bovedilla</option>
           </select>
         </div>
         <div class="fg"><label>Largo (m)</label><input type="number" class="losa-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
         <div class="fg"><label>Ancho (m)</label><input type="number" class="losa-a" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
-        <div class="fg"><label>Espesor</label>
+        <div class="fg"><label>Espesor capa compresión</label>
           <select class="losa-e" onchange="calcAll()">
-            <option value="0.10">10 cm</option><option value="0.12" selected>12 cm (estándar)</option>
-            <option value="0.15">15 cm</option><option value="0.20">20 cm</option>
+            <option value="0.05" selected>5 cm</option><option value="0.08">8 cm</option>
+            <option value="0.10">10 cm</option>
           </select>
         </div>
       </div>
+      <div id="vig-extra-${n}" style="display:none;margin-top:10px;background:rgba(0,0,0,0.03);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Datos Vigueta + Bovedilla</div>
+        <div class="fgrid">
+          <div class="fg"><label>Sep. entre viguetas (m)</label><input type="number" class="vig-sep" value="0.60" min="0.40" max="1.00" step="0.01" oninput="calcAllD()"></div>
+          <div class="fg"><label>Precio vigueta (Q/ml)</label><input type="number" class="vig-precio-ml" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+          <div class="fg"><label>Precio bovedilla (Q/ud)</label><input type="number" class="vig-precio-bov" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+          <div class="fg"><label>MO tendido (Q/m²)</label><input type="number" class="vig-mo" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        </div>
+        <div id="vig-detalle-${n}" style="margin-top:8px;font-size:11px;color:var(--ink-mid);"></div>
+      </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
-        Área: <span id="losa-area-${nLosa}" style="color:var(--ink);font-weight:600;">0.00 m²</span>
+        Área: <span id="losa-area-${n}" style="color:var(--ink);font-weight:600;">0.00 m²</span>
         &nbsp;·&nbsp; Subtotal:
-        <span id="losa-sub-${nLosa}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
+        <span id="losa-sub-${n}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
       </div>
     </div>`);
+  const card = document.getElementById(id);
+  if (card) {
+    card.querySelector('.vig-precio-ml').value  = PRICE_DEFS['vigueta_ml']?.val  || '';
+    card.querySelector('.vig-precio-bov').value = PRICE_DEFS['bovedilla_ud']?.val || '';
+    card.querySelector('.vig-mo').value         = PRICE_DEFS['mo_vig_bov']?.val  || '';
+  }
   calcAll();
 }
 
@@ -2534,13 +2564,27 @@ function _calcAllReal() {
     const l=+(c.querySelector('.losa-l')?.value)||0, a=+(c.querySelector('.losa-a')?.value)||0;
     const e=+(c.querySelector('.losa-e')?.value)||0.12;
     const areaI=l*a; areaLosas+=areaI;
-    let volI=0, h3i=0;
+    let volI=0, h3i=0, vigBovExtra=0;
     if (tipo==='maciza') { volI=areaI*e; h3i=areaI*13.33*1.15; }
-    else                 { volI=areaI*0.05; h3i=areaI*(1/0.25)*1.10; }
+    else {
+      volI=areaI*e; h3i=areaI*(1/0.25)*1.10;
+      const sep       = +(c.querySelector('.vig-sep')?.value)||0.60;
+      const vigPrecMl = +(c.querySelector('.vig-precio-ml')?.value)||getPrecio('vigueta_ml');
+      const bovPrecUd = +(c.querySelector('.vig-precio-bov')?.value)||getPrecio('bovedilla_ud');
+      const vigMoM2   = +(c.querySelector('.vig-mo')?.value)||getPrecio('mo_vig_bov');
+      const l=+(c.querySelector('.losa-l')?.value)||0, a=+(c.querySelector('.losa-a')?.value)||0;
+      const nVig   = Math.ceil(a/sep)+1;
+      const mlVig  = +(nVig*l*1.05).toFixed(2);
+      const nGaps  = Math.ceil(a/sep);
+      const nBov   = Math.ceil(nGaps * Math.ceil(l/0.25) * 1.05);
+      vigBovExtra  = mlVig*vigPrecMl + nBov*bovPrecUd + areaI*vigMoM2;
+      const det = document.getElementById('vig-detalle-'+n);
+      if (det) det.innerHTML = `Viguetas: <b>${nVig} ud × ${l}m = ${mlVig} ml</b> &nbsp;·&nbsp; Bovedillas: <b>${nBov} ud</b> &nbsp;·&nbsp; MO: <b>${areaI.toFixed(2)} m²</b>`;
+    }
     volLosa+=volI; mH3losa+=h3i;
     const v3i=Math.ceil(h3i/6);
     const alI=Math.max(1,Math.ceil(v3i/50));
-    const subI=volI*_cM3 + v3i*_pH3 + alI*_pAl;
+    const subI=volI*_cM3 + v3i*_pH3 + alI*_pAl + vigBovExtra;
     const eA=document.getElementById('losa-area-'+n), eS=document.getElementById('losa-sub-'+n);
     if(eA) eA.textContent=areaI.toFixed(2)+' m²';
     if(eS) eS.textContent=_fmtS(subI);
@@ -3087,7 +3131,11 @@ function saveState() {
     (document.getElementById('losas-list')?.querySelectorAll('.card')||[]).forEach(c => p.losas.push({
       desc: c.querySelector('input[type="text"]')?.value||'', tipo: c.querySelector('.losa-tipo')?.value||'maciza',
       l: c.querySelector('.losa-l')?.value||'', a: c.querySelector('.losa-a')?.value||'',
-      e: c.querySelector('.losa-e')?.value||'0.12'
+      e: c.querySelector('.losa-e')?.value||'0.05',
+      vigSep:  c.querySelector('.vig-sep')?.value||'0.60',
+      vigMl:   c.querySelector('.vig-precio-ml')?.value||'',
+      vigBov:  c.querySelector('.vig-precio-bov')?.value||'',
+      vigMo:   c.querySelector('.vig-mo')?.value||''
     }));
 
     p.cerPiso = [];
@@ -3369,6 +3417,9 @@ const PRICE_DEFS = {
   mo_tabique:{ cat:'👷 Mano de Obra', label:'Tabique / drywall',      unit:'m²',    val:57.53 },
   mo_cielo:  { cat:'👷 Mano de Obra', label:'Cielo falso',            unit:'m²',    val:68.01 },
   mo_conc:   { cat:'👷 Mano de Obra', label:'Concreto armado',        unit:'m³',    val:439.76},
+  vigueta_ml:  { cat:'🏗️ Concreto', label:'Vigueta pretensada T-12', unit:'ml',    val:38.00  },
+  bovedilla_ud:{ cat:'🏗️ Concreto', label:'Bovedilla 25×25cm',       unit:'ud',    val:15.00  },
+  mo_vig_bov:  { cat:'👷 Mano de Obra', label:'Tendido vigueta y bovedilla', unit:'m²', val:45.00 },
   mo_rep:    { cat:'👷 Mano de Obra', label:'Repello',                unit:'m²',    val:29.30 },
   mo_pint:   { cat:'👷 Mano de Obra', label:'Pintura',                unit:'m²',    val:15.70 },
   mo_cer_p:  { cat:'👷 Mano de Obra', label:'Cerámica piso',          unit:'m²',    val:47.04 },
@@ -4334,6 +4385,71 @@ function imprimirInterno() {
     herrRows.push([desc, prov, fmtQ(+mnt||0)]);
   });
 
+  // Ventanería y Puertas
+  const ventRows = [];
+  document.querySelectorAll('#ventaneria-list > .card').forEach(c => {
+    const desc = c.querySelector('.vent-desc')?.value || '—';
+    const cant = c.querySelector('.vent-cant')?.value || '1';
+    const prec = c.querySelector('.vent-precio')?.value || '0';
+    const sub  = (+cant||0) * (+prec||0);
+    if (sub > 0) ventRows.push([desc, cant+' ud', fmtQ(+prec||0), fmtQ(sub)]);
+  });
+
+  // Equipo Especial Jacuzzi
+  const equipEspRows = [];
+  document.querySelectorAll('#equip-esp-list > .card').forEach(c => {
+    const desc  = c.querySelector('.eesp-desc')?.value || '—';
+    const cant  = c.querySelector('.eesp-cant')?.value || '1';
+    const prec  = c.querySelector('.eesp-precio')?.value || '0';
+    const inclMo= c.querySelector('.eesp-mo')?.checked||false;
+    const moPr  = c.querySelector('.eesp-mo-precio')?.value || '0';
+    const sub   = (+cant||0)*(+prec||0) + (inclMo?(+cant||0)*(+moPr||0):0);
+    if (sub > 0) equipEspRows.push([desc, cant+' ud', fmtQ(+prec||0), inclMo?fmtQ(+moPr||0):'—', fmtQ(sub)]);
+  });
+
+  // Cajas de Registro
+  const cajRegRows = [];
+  document.querySelectorAll('#cajreg-list > .card').forEach(c => {
+    const desc  = c.querySelector('.cajreg-desc')?.value || '—';
+    const largo = c.querySelector('.cajreg-largo')?.value || '—';
+    const ancho = c.querySelector('.cajreg-ancho')?.value || '—';
+    const alto  = c.querySelector('.cajreg-alto')?.value  || '—';
+    const cant  = c.querySelector('.cajreg-n')?.value     || '1';
+    cajRegRows.push([desc, largo+'×'+ancho+' m int.', alto+' m alto', cant+' ud']);
+  });
+
+  // Cable Eléctrico
+  const elecCabRows = [];
+  document.querySelectorAll('#elec-cab-list > .card').forEach(c => {
+    const n    = c.id.replace('elec-cab-','');
+    const desc = c.querySelector('.ecab-desc')?.value || '—';
+    const cal  = c.querySelector('.ecab-cal')?.value  || 'alambr12';
+    const metros = c.querySelector('.ecab-m')?.value  || '0';
+    const res  = document.getElementById('ecab-res-'+n)?.textContent || '';
+    elecCabRows.push([desc, cal.replace('alambr','#')+' AWG', metros+' m', res]);
+  });
+
+  // Tablero Eléctrico
+  const tableroRows = [];
+  document.querySelectorAll('#tablero-list > .card').forEach(c => {
+    const desc = c.querySelector('.tab-desc')?.value  || '—';
+    const cant = c.querySelector('.tab-cant')?.value  || '1';
+    const prec = c.querySelector('.tab-precio')?.value|| '0';
+    const sub  = (+cant||0)*(+prec||0);
+    tableroRows.push([desc, cant+' ud', fmtQ(+prec||0), fmtQ(sub)]);
+  });
+
+  // Tubería Hidráulica
+  const tuboHidrRows = [];
+  document.querySelectorAll('#tubo-hidr-list > .card').forEach(c => {
+    const n    = c.id.replace('tubo-hidr-','');
+    const desc = c.querySelector('.thdr-desc')?.value || '—';
+    const tip  = c.querySelector('.thdr-tipo')?.value || 'pvc_a12';
+    const m    = c.querySelector('.thdr-m')?.value    || '0';
+    const tubs = m > 0 ? Math.ceil(+m / 6) : 0;
+    tuboHidrRows.push([desc, PRICE_DEFS[tip]?.label||tip, m+' m', tubs+' tubos 6m']);
+  });
+
   // Jardinización
   const jardRows = [];
   document.querySelectorAll('#jard-list > .card').forEach(c => {
@@ -4402,14 +4518,26 @@ function imprimirInterno() {
       [{label:'Descripción'},{label:'Tipo'},{label:'Puntos'},{label:'Long.'},{label:'Subtotal',r:true}], elecRows),
     ElecArtefactos: secTable('💡','Artefactos Eléctricos y Luminarias',
       [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], elecArtRows),
+    ElecCable:      secTable('🔌','Cable Eléctrico',
+      [{label:'Descripción'},{label:'Calibre'},{label:'Metros'},{label:'Detalle'}], elecCabRows),
+    Tablero:        secTable('⚡','Tablero Eléctrico',
+      [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], tableroRows),
     Hidraulica:     secTable('🚿','Instalación Hidráulica — Tramos',
       [{label:'Descripción'},{label:'Diámetro'},{label:'Long.'},{label:'Accesorio'},{label:'Subtotal',r:true}], hidrRows),
     HidrArtefactos: secTable('🚽','Artefactos Sanitarios',
       [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], hidrArtRows),
+    TuboHidr:       secTable('🔩','Tubería',
+      [{label:'Descripción'},{label:'Tipo'},{label:'Metros'},{label:'Tubos 6m'}], tuboHidrRows),
+    CajasRegistro:  secTable('📦','Cajas de Registro de Block',
+      [{label:'Descripción'},{label:'Dimensiones int.'},{label:'Alto'},{label:'Cant.'}], cajRegRows),
+    EquipoJacuzzi:  secTable('🛁','Equipo Especial Jacuzzi',
+      [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'M.O.'},{label:'Subtotal',r:true}], equipEspRows),
     Carpinteria:    secTable('🔧','Carpintería',
       [{label:'Descripción'},{label:'Proveedor'},{label:'Monto',r:true}], carpRows),
     Herreria:       secTable('⚒️','Herrería',
       [{label:'Descripción'},{label:'Proveedor'},{label:'Monto',r:true}], herrRows),
+    Ventaneria:     secTable('🪟','Ventanería y Puertas',
+      [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], ventRows),
     Jardinizacion:  secTable('🌿','Jardinización',
       [{label:'Ítem'},{label:'Cantidad'},{label:'Nota'},{label:'P. unit.'},{label:'Subtotal',r:true}], jardRows),
     Consultores:    secTable('👷','Personal Técnico y Consultores',
