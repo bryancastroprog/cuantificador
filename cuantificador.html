@@ -2518,7 +2518,7 @@ function saveState() {
     p.pagos     = savePagos();
 
     p.paredes = [];
-    document.querySelectorAll('[id^="pared-"]').forEach(card => {
+    (document.getElementById('paredes-list')?.querySelectorAll('.card')||[]).forEach(card => {
       const vanos = [];
       card.querySelectorAll('.vano-row').forEach(v => {
         vanos.push({ desc: v.querySelector('input[type="text"]')?.value||'',
@@ -2536,34 +2536,33 @@ function saveState() {
     });
 
     p.columnas = [];
-    document.querySelectorAll('[id^="col-"]').forEach(c => p.columnas.push({
+    (document.getElementById('columnas-list')?.querySelectorAll('.card')||[]).forEach(c => p.columnas.push({
       desc: c.querySelector('input[type="text"]')?.value||'', sec: c.querySelector('.col-sec')?.value||'',
       h: c.querySelector('.col-h')?.value||'', n: c.querySelector('.col-n')?.value||''
     }));
 
     p.vigas = [];
-    document.querySelectorAll('[id^="vig-"]').forEach(c => p.vigas.push({
+    (document.getElementById('vigas-list')?.querySelectorAll('.card')||[]).forEach(c => p.vigas.push({
       desc: c.querySelector('input[type="text"]')?.value||'', sec: c.querySelector('.vig-sec')?.value||'',
       l: c.querySelector('.vig-l')?.value||'', n: c.querySelector('.vig-n')?.value||''
     }));
 
     p.cimientos = [];
-    document.querySelectorAll('[id^="cim-"]').forEach(c => p.cimientos.push({
+    (document.getElementById('cimientos-list')?.querySelectorAll('.card')||[]).forEach(c => p.cimientos.push({
       tipo: c.querySelector('.cim-tipo')?.value||'corrido',
       a: c.querySelector('.cim-a')?.value||'', p: c.querySelector('.cim-p')?.value||'',
       l: c.querySelector('.cim-l')?.value||'', n: c.querySelector('.cim-n')?.value||''
     }));
 
     p.losas = [];
-    document.querySelectorAll('[id^="losa-"]').forEach(c => p.losas.push({
+    (document.getElementById('losas-list')?.querySelectorAll('.card')||[]).forEach(c => p.losas.push({
       desc: c.querySelector('input[type="text"]')?.value||'', tipo: c.querySelector('.losa-tipo')?.value||'maciza',
       l: c.querySelector('.losa-l')?.value||'', a: c.querySelector('.losa-a')?.value||'',
       e: c.querySelector('.losa-e')?.value||'0.12'
     }));
 
     p.cerPiso = [];
-    document.querySelectorAll('[id^="cp-"]').forEach(c => {
-      if(!/^cp-\d+$/.test(c.id)) return;
+    (document.getElementById('cerpiso-list')?.querySelectorAll('.card')||[]).forEach(c => {
       p.cerPiso.push({
         desc: c.querySelector('.cp-desc')?.value||'',
         acabado: c.querySelector('.cp-acabado')?.value||'',
@@ -2575,8 +2574,7 @@ function saveState() {
     });
 
     p.cerPared = [];
-    document.querySelectorAll('[id^="cpar-"]').forEach(c => {
-      if(!/^cpar-\d+$/.test(c.id)) return;
+    (document.getElementById('cerpared-list')?.querySelectorAll('.card')||[]).forEach(c => {
       p.cerPared.push({
         desc: c.querySelector('.cpar-desc')?.value||'',
         acabado: c.querySelector('.cpar-acabado')?.value||'',
