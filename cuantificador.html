@@ -595,6 +595,15 @@
           <button class="btn btn-outline" onclick="addCajaRegistro()">+ Agregar Caja</button>
         </div>
         <div id="cajreg-list"></div>
+
+        <div class="subsec" style="margin-top:28px;">
+          <div>
+            <div class="subsec-title">Equipos Especiales</div>
+            <div class="subsec-hint">Jacuzzi, bombas, calentadores, equipos de spa · Precio directo de proveedor · Admin + Util + IVA únicamente</div>
+          </div>
+          <button class="btn btn-outline" onclick="addEquipoEsp()">+ Agregar Equipo</button>
+        </div>
+        <div id="equip-esp-list"></div>
       </div>
 
       <!-- ── CARPINTERÍA ── -->
@@ -925,6 +934,7 @@
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Herrería (fijo)</span><span class="sum-val" id="s-cd-herr" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos eléct.</span><span class="sum-val" id="s-cd-elec-art" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos sanit.</span><span class="sum-val" id="s-cd-hidr-art" style="font-size:12px;">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Equipos especiales</span><span class="sum-val" id="s-cd-equip-esp" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Jardinización</span><span class="sum-val" id="s-cd-jard" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Personal/Consult.</span><span class="sum-val" id="s-cd-consult" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row" style="border-top:1px dashed var(--div);padding-top:5px;margin-top:3px;">
@@ -1141,8 +1151,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0;
-  ['elec-art-list','hidr-art-list','cajreg-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0;
+  ['elec-art-list','hidr-art-list','cajreg-list','equip-esp-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1320,6 +1330,7 @@ function abrirProyecto(id) {
     card.querySelector('.hidr-acc').value  = h.acc  || '';
   });
   (proj.hidrArt || []).forEach(a => addHidrArt(a.desc, a.cant, a.precio));
+  (proj.equipoEsp || []).forEach(e => addEquipoEsp(e.desc, e.cant, e.precio, e.selKey));
   (proj.cajReg  || []).forEach(cr => {
     addCajaRegistro();
     const card = document.getElementById('cajreg-' + nCajReg);
@@ -1378,7 +1389,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1825,6 +1836,50 @@ function addElecArt(desc, cant, precio) {
         <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Admin + Util + IVA</span>
       </div>
     </div>`);
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  EQUIPOS ESPECIALES
+// ═══════════════════════════════════════════
+function _equipoEspOpts() {
+  const custom = '<option value="">— Personalizado —</option>';
+  const items = Object.entries(PRICE_DEFS)
+    .filter(([,v]) => v.cat.includes('Equipos Especiales'))
+    .map(([k,v]) => `<option value="${k}">${v.label} (${v.unit})</option>`)
+    .join('');
+  return custom + items;
+}
+function equipoEspChange(sel) {
+  const card = sel.closest('.card');
+  const key  = sel.value;
+  if (key && PRICE_DEFS[key]) {
+    card.querySelector('.eesp-precio').value = PRICE_DEFS[key].val;
+    card.querySelector('.eesp-desc').value   = card.querySelector('.eesp-desc').value || PRICE_DEFS[key].label;
+  }
+  calcAll();
+}
+function addEquipoEsp(desc, cant, precio, selKey) {
+  nEquipoEsp++;
+  const id = 'eesp-' + nEquipoEsp;
+  document.getElementById('equip-esp-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">⚙️ Equipo ${nEquipoEsp}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg span2">
+          <label>Tipo de equipo</label>
+          <select class="eesp-sel" onchange="equipoEspChange(this)">${_equipoEspOpts()}</select>
+        </div>
+        <div class="fg span2"><label>Descripción</label><input type="text" class="eesp-desc" placeholder="Ej. Bomba de hidromasaje 2 HP" value="${desc||''}" oninput="saveState()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="eesp-cant" placeholder="1" min="1" step="1" value="${cant||''}" oninput="calcAllD()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="eesp-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
+      </div>
+      <div style="margin-top:10px;font-size:13px;color:var(--ink-mid);">
+        Subtotal: <span id="eesp-sub-${nEquipoEsp}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
+        <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Admin + Util + IVA</span>
+      </div>
+    </div>`);
+  if (selKey) document.getElementById(id).querySelector('.eesp-sel').value = selKey;
   calcAll();
 }
 
@@ -2501,8 +2556,18 @@ function _calcAllReal() {
   // costoBase = instalaciones + estructura (sujeto a imp/ind completos)
   const costoBase = prelimTotal + costoTotal + costoConcreto + costoHierroMat
                   + costoAcabados + costoCeramica + elecCosto + hidrCosto;
+  // EQUIPOS ESPECIALES
+  let costoEquipoEsp = 0;
+  (document.getElementById('equip-esp-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n   = card.id.replace('eesp-','');
+    const sub = (+(card.querySelector('.eesp-cant')?.value)||0) * (+(card.querySelector('.eesp-precio')?.value)||0);
+    costoEquipoEsp += sub;
+    const el = document.getElementById('eesp-sub-'+n);
+    if (el) el.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+
   // costoArtefactos = precio directo; sin imp/ind; siempre con admin+util+iva
-  const costoArtefactos = costoElecArt + costoHidrArt + costoJard + costoConsult;
+  const costoArtefactos = costoElecArt + costoHidrArt + costoEquipoEsp + costoJard + costoConsult;
 
   // costoCarp = carpintería (precio de proveedor, sin imprevistos ni indirectos)
   let costoCarp = 0;
@@ -2572,7 +2637,7 @@ function _calcAllReal() {
   setQ('s-cer-mat',   costoCerMat);
   setQ('s-cer-total', costoCeramica);
   setQ('s-cd-base', costoBase); setQ('s-cd-carp', costoCarp); setQ('s-cd-herr', costoHerr);
-  setQ('s-cd-elec-art', costoElecArt); setQ('s-cd-hidr-art', costoHidrArt);
+  setQ('s-cd-elec-art', costoElecArt); setQ('s-cd-hidr-art', costoHidrArt); setQ('s-cd-equip-esp', costoEquipoEsp);
   setQ('s-cd-jard', costoJard); setQ('s-cd-consult', costoConsult);
   setQ('s-cd', costoDirecto);
   setQ('s-imp', mImp); setQ('s-ind', mInd);
@@ -2725,6 +2790,13 @@ function saveState() {
     p.hidrArt = [];
     document.querySelectorAll('#hidr-art-list > .card').forEach(c => p.hidrArt.push({
       desc: c.querySelector('.ha-desc')?.value||'', cant: c.querySelector('.ha-cant')?.value||'', precio: c.querySelector('.ha-precio')?.value||''
+    }));
+    p.equipoEsp = [];
+    (document.getElementById('equip-esp-list')?.querySelectorAll('.card')||[]).forEach(c => p.equipoEsp.push({
+      desc:   c.querySelector('.eesp-desc')?.value||'',
+      cant:   c.querySelector('.eesp-cant')?.value||'',
+      precio: c.querySelector('.eesp-precio')?.value||'',
+      selKey: c.querySelector('.eesp-sel')?.value||''
     }));
     p.cajReg = [];
     (document.getElementById('cajreg-list')?.querySelectorAll('.card')||[]).forEach(c => p.cajReg.push({
