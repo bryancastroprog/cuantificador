@@ -1614,6 +1614,7 @@ function addPared() {
           &nbsp;= <span id="sub-${n}" style="color:var(--gold);font-weight:700;font-size:13px;">Q 0.00</span>
         </div>
       </div>
+      <div id="pared-det-${n}" style="display:none;margin-top:6px;padding:8px 12px;background:rgba(107,80,48,0.06);border-radius:6px;font-size:11px;color:var(--ink-mid);flex-wrap:wrap;gap:6px 18px;"></div>
     </div>`);
   calcAll();
 }
@@ -2615,6 +2616,28 @@ function _calcAllReal() {
     const moEl = document.getElementById('sub-mo-'+num);
     if (moEl) moEl.textContent = 'Q '+fmt(subMO);
     moMuros += subMO;
+    // Desglose de cantidades por muro
+    const eDet = document.getElementById('pared-det-'+num);
+    if (eDet) {
+      if (neta > 0) {
+        eDet.style.display = 'flex';
+        if (tipoBlock === 'tabique') {
+          const lams = Math.ceil(neta / 3);
+          eDet.innerHTML = `<span>🪵 <b>Láminas drywall:</b> ${lams} ud</span><span>👷 <b>M.O.:</b> Q ${fmt(subMO)}</span>`;
+        } else if (tipoBlock === 'cielo') {
+          const lams = Math.ceil(neta / 3);
+          eDet.innerHTML = `<span>🪵 <b>Láminas yeso:</b> ${lams} ud</span><span>👷 <b>M.O.:</b> Q ${fmt(subMO)}</span>`;
+        } else {
+          const lblBlock = tipoBlock==='10' ? 'Block 0.10m' : tipoBlock==='20' ? 'Block 0.20m' : 'Block 0.15m';
+          const nBlocks  = Math.ceil(neta * 13.1);
+          const sacSab   = Math.ceil(neta * 0.132);
+          const areSab   = (neta * 0.044).toFixed(2);
+          eDet.innerHTML = `<span>🧱 <b>${lblBlock}:</b> ${nBlocks} ud</span><span>🧱 <b>Cemento sabeta:</b> ${sacSab} sacos</span><span>🏖️ <b>Arena sabeta:</b> ${areSab} m³</span><span>👷 <b>M.O. pega block:</b> Q ${fmt(subMO)}</span>`;
+        }
+      } else {
+        eDet.style.display = 'none';
+      }
+    }
     if (sub > 0) {
       costoTotal += sub;
       const lbl = codigo || 'Pared '+num;
