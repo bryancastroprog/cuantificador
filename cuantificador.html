@@ -1404,7 +1404,7 @@ function abrirProyecto(id) {
     card.querySelector('.elec-pts').value  = e.pts  || '';
     card.querySelector('.elec-l').value    = e.l    || '';
   });
-  (proj.elecArt || []).forEach(a => addElecArt(a.desc, a.cant, a.precio));
+  (proj.elecArt || []).forEach(a => addElecArt(a.desc, a.cant, a.precio, a.img));
   (proj.elecCab || []).forEach(ec => {
     addElecCable();
     const card = document.getElementById('elec-cab-' + nElecCab);
@@ -2195,7 +2195,54 @@ function addTablero(desc, cant, precio, selKey, mo, moPrecio) {
 // ═══════════════════════════════════════════
 //  ARTEFACTOS ELÉCTRICOS
 // ═══════════════════════════════════════════
-function addElecArt(desc, cant, precio) {
+function _resizeImgBlob(blob, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(cv.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(blob);
+}
+function _eaImgSet(card, data) {
+  card.querySelector('.ea-img-data').value = data;
+  card.querySelector('.ea-img-prev').src = data;
+  card.querySelector('.ea-img-wrap').style.display = 'flex';
+  card.querySelector('.ea-paste-zone').style.display = 'none';
+  saveState();
+}
+function eaImgPaste(e, zone) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      _resizeImgBlob(item.getAsFile(), data => _eaImgSet(zone.closest('.card'), data));
+      return;
+    }
+  }
+}
+function eaImgFromFile(input) {
+  const file = input.files[0]; if (!file) return;
+  _resizeImgBlob(file, data => _eaImgSet(input.closest('.card'), data));
+}
+function eaImgClear(btn) {
+  const card = btn.closest('.card');
+  card.querySelector('.ea-img-data').value = '';
+  card.querySelector('.ea-img-prev').src = '';
+  card.querySelector('.ea-img-wrap').style.display = 'none';
+  card.querySelector('.ea-paste-zone').style.display = 'flex';
+  saveState();
+}
+function addElecArt(desc, cant, precio, img) {
   nElecArt++;
   const id = 'elec-art-' + nElecArt;
   document.getElementById('elec-art-list').insertAdjacentHTML('beforeend', `
@@ -2210,7 +2257,29 @@ function addElecArt(desc, cant, precio) {
         Subtotal: <span id="ea-sub-${nElecArt}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
         <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Admin + Util + IVA</span>
       </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="ea-paste-zone" tabindex="0"
+             onpaste="eaImgPaste(event,this)"
+             onclick="this.querySelector('input[type=file]').click()"
+             style="display:flex;align-items:center;gap:6px;padding:7px 14px;border:1.5px dashed var(--div);border-radius:8px;cursor:pointer;font-size:11px;color:var(--ink-mid);background:var(--bg2);outline:none;transition:border-color 0.15s;"
+             onfocus="this.style.borderColor='var(--gold2)'" onblur="this.style.borderColor='var(--div)'">
+          📋 Pegar imagen (Ctrl+V) o clic para buscar
+          <input type="file" accept="image/*" style="display:none" onchange="eaImgFromFile(this)" onclick="event.stopPropagation()">
+        </div>
+        <input type="hidden" class="ea-img-data">
+        <div class="ea-img-wrap" style="display:none;position:relative;align-items:center;">
+          <img class="ea-img-prev" src="" alt="" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--div);">
+          <button onclick="eaImgClear(this)" title="Quitar imagen" style="position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:white;border:none;font-size:12px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
+        </div>
+      </div>
     </div>`);
+  if (img) {
+    const el = document.getElementById(id);
+    el.querySelector('.ea-img-data').value = img;
+    el.querySelector('.ea-img-prev').src = img;
+    el.querySelector('.ea-img-wrap').style.display = 'flex';
+    el.querySelector('.ea-paste-zone').style.display = 'none';
+  }
   calcAll();
 }
 
@@ -3287,7 +3356,8 @@ function saveState() {
     }));
     p.elecArt = [];
     document.querySelectorAll('#elec-art-list > .card').forEach(c => p.elecArt.push({
-      desc: c.querySelector('.ea-desc')?.value||'', cant: c.querySelector('.ea-cant')?.value||'', precio: c.querySelector('.ea-precio')?.value||''
+      desc: c.querySelector('.ea-desc')?.value||'', cant: c.querySelector('.ea-cant')?.value||'', precio: c.querySelector('.ea-precio')?.value||'',
+      img: c.querySelector('.ea-img-data')?.value||''
     }));
     p.elecCab = [];
     (document.getElementById('elec-cab-list')?.querySelectorAll('.card')||[]).forEach(c => p.elecCab.push({
@@ -4421,13 +4491,16 @@ function imprimirInterno() {
 
   // Artefactos eléctricos
   const elecArtRows = [];
+  let elecArtHasImg = false;
   document.querySelectorAll('#elec-art-list > .card').forEach(c => {
     const n   = c.id.replace('elec-art-','');
     const desc= c.querySelector('.ea-desc')?.value || '—';
     const cant= c.querySelector('.ea-cant')?.value || '';
     const prec= c.querySelector('.ea-precio')?.value || '';
     const sub = gtxt('ea-sub-'+n);
-    if (cant) elecArtRows.push([desc, cant+' ud', fmtQ(+prec||0), sub||'Q 0.00']);
+    const img = c.querySelector('.ea-img-data')?.value || '';
+    if (img) elecArtHasImg = true;
+    if (cant) elecArtRows.push([desc, cant+' ud', fmtQ(+prec||0), sub||'Q 0.00', img]);
   });
 
   // Hidráulica — tramos
@@ -4612,8 +4685,13 @@ function imprimirInterno() {
       [{label:'Ambiente'},{label:'Acabado/Material'},{label:'Formato'},{label:'Área directa'},{label:'H cerámica'},{label:'Perímetro'},{label:'c/desp.'},{label:'Tiles'},{label:'Crucetas'},{label:'P/m²',r:true}], cerParedRows),
     Electrica:      secTable('⚡','Instalación Eléctrica — Circuitos',
       [{label:'Descripción'},{label:'Tipo'},{label:'Puntos'},{label:'Long.'},{label:'Subtotal',r:true}], elecRows),
-    ElecArtefactos: secTable('💡','Artefactos Eléctricos y Luminarias',
-      [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], elecArtRows),
+    ElecArtefactos: elecArtHasImg
+      ? secTable('💡','Artefactos Eléctricos y Luminarias',
+          [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true},{label:'Foto'}],
+          elecArtRows.map(r => [...r.slice(0,4), r[4] ? `<img src="${r[4]}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;display:block;">` : '']))
+      : secTable('💡','Artefactos Eléctricos y Luminarias',
+          [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}],
+          elecArtRows.map(r => r.slice(0,4))),
     ElecCable:      secTable('🔌','Cable Eléctrico',
       [{label:'Descripción'},{label:'Calibre'},{label:'Metros'},{label:'Detalle'}], elecCabRows),
     Tablero:        secTable('⚡','Tablero Eléctrico',
