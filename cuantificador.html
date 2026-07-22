@@ -1316,9 +1316,10 @@ function abrirProyecto(id) {
     if (!card) return;
     card.querySelector('input[type="text"]').value = l.desc || '';
     card.querySelector('.losa-tipo').value         = l.tipo || 'maciza';
-    card.querySelector('.losa-l').value            = l.l    || '';
-    card.querySelector('.losa-a').value            = l.a    || '';
-    card.querySelector('.losa-e').value            = l.e    || '0.05';
+    card.querySelector('.losa-l').value            = l.l       || '';
+    card.querySelector('.losa-a').value            = l.a       || '';
+    card.querySelector('.losa-e').value            = l.e       || '0.05';
+    if (l.areaDir) card.querySelector('.losa-area-dir').value = l.areaDir;
     if (l.tipo === 'vigueta') {
       const extra = document.getElementById('vig-extra-'+nLosa);
       if (extra) extra.style.display = 'block';
@@ -1758,6 +1759,7 @@ function addLosa() {
         </div>
         <div class="fg"><label>Largo (m)</label><input type="number" class="losa-l" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
         <div class="fg"><label>Ancho (m)</label><input type="number" class="losa-a" placeholder="0.00" min="0" step="0.01" oninput="calcAllD()"></div>
+        <div class="fg"><label>Área directa (m²) <span style="font-size:9px;color:var(--ink-mid);font-weight:400;">— losa irregular</span></label><input type="number" class="losa-area-dir" placeholder="Opcional" min="0" step="0.01" oninput="calcAllD()"></div>
         <div class="fg"><label>Espesor capa compresión</label>
           <select class="losa-e" onchange="calcAll()">
             <option value="0.05" selected>5 cm</option><option value="0.08">8 cm</option>
@@ -2773,7 +2775,9 @@ function _calcAllReal() {
     const tipo=c.querySelector('.losa-tipo')?.value||'maciza';
     const l=+(c.querySelector('.losa-l')?.value)||0, a=+(c.querySelector('.losa-a')?.value)||0;
     const e=+(c.querySelector('.losa-e')?.value)||0.12;
-    const areaI=l*a; areaLosas+=areaI;
+    const areaDir=+(c.querySelector('.losa-area-dir')?.value)||0;
+    const areaI = areaDir > 0 ? areaDir : l*a;
+    areaLosas+=areaI;
     let volI=0, h3i=0, vigBovExtra=0;
     if (tipo==='maciza') { volI=areaI*e; h3i=areaI*13.33*1.15; }
     else {
@@ -3371,6 +3375,7 @@ function saveState() {
     (document.getElementById('losas-list')?.querySelectorAll('.card')||[]).forEach(c => p.losas.push({
       desc: c.querySelector('input[type="text"]')?.value||'', tipo: c.querySelector('.losa-tipo')?.value||'maciza',
       l: c.querySelector('.losa-l')?.value||'', a: c.querySelector('.losa-a')?.value||'',
+      areaDir: c.querySelector('.losa-area-dir')?.value||'',
       e: c.querySelector('.losa-e')?.value||'0.05',
       vigSep:  c.querySelector('.vig-sep')?.value||'0.60',
       vigMl:   c.querySelector('.vig-precio-ml')?.value||'',
