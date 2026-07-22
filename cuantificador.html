@@ -1715,6 +1715,7 @@ function addCimiento() {
         &nbsp;·&nbsp; Subtotal:
         <span id="cim-sub-${n}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
       </div>
+      <div id="cim-det-${n}" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(107,80,48,0.06);border-radius:6px;font-size:11px;color:var(--ink-mid);flex-wrap:wrap;gap:6px 18px;"></div>
     </div>`);
   calcAll();
 }
@@ -2686,9 +2687,23 @@ function _calcAllReal() {
     const alI=Math.max(1,Math.ceil((v4i+v2i)/50));
     const subI=volI*_cM3 + v4i*_pH4 + v2i*_pH2 + alI*_pAl;
     volCim+=volI; mH4cim+=h4i; mH2cim+=h2i;
+    const sacCim = Math.ceil(volI * 7 * 1.05);
+    const areCim = (volI * 0.5 * 1.05).toFixed(2);
+    const pieCim = (volI * 1.0 * 1.05).toFixed(2);
+    const moCim  = volI * getPrecio('mo_conc');
     const eV=document.getElementById('cim-vol-'+n), eS=document.getElementById('cim-sub-'+n);
     if(eV) eV.textContent=volI.toFixed(3)+' m³';
     if(eS) eS.textContent=_fmtS(subI);
+    const eDet = document.getElementById('cim-det-'+n);
+    if (eDet) {
+      if (volI > 0) {
+        const v2row = tipo==='corrido' ? `<span>🔩 <b>Estrib. #2:</b> ${v2i} var.</span>` : '';
+        eDet.style.display = 'flex';
+        eDet.innerHTML = `<span>🔧 <b>Varilla #4:</b> ${v4i} var. 6m</span>${v2row}<span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento:</b> ${sacCim} sacos</span><span>🏖️ <b>Arena:</b> ${areCim} m³</span><span>🪨 <b>Piedrín:</b> ${pieCim} m³</span><span>👷 <b>M.O.:</b> ${_fmtS(moCim)}</span>`;
+      } else {
+        eDet.style.display = 'none';
+      }
+    }
   });
 
   // LOSAS
