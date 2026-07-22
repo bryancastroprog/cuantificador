@@ -484,7 +484,8 @@
       <button class="nav-btn" onclick="showTab('hidraulica',this)"><span class="ico">🚿</span> Hidráulica</button>
       <button class="nav-btn" onclick="showTab('carpinteria',this)"><span class="ico">🔧</span> Carpintería</button>
       <button class="nav-btn" onclick="showTab('herreria',this)"><span class="ico">⚒️</span> Herrería</button>
-      <button class="nav-btn" onclick="showTab('ventaneria',this)"><span class="ico">🪟</span> Ventanería</button>
+      <button class="nav-btn" onclick="showTab('puertas',this)"><span class="ico">🚪</span> Puertas</button>
+      <button class="nav-btn" onclick="showTab('ventanas',this)"><span class="ico">🪟</span> Ventanas</button>
       <button class="nav-btn" onclick="showTab('jardinizacion',this)"><span class="ico">🌿</span> Jardinización</button>
       <button class="nav-btn" onclick="showTab('consultores',this)"><span class="ico">👷</span> Personal / Consultores</button>
       <button class="nav-btn" onclick="showTab('info',this)"><span class="ico">📋</span> Info Proyecto</button>
@@ -672,12 +673,31 @@
         <button class="btn btn-primary" onclick="addHerreria()">+ Agregar Ítem</button>
       </div>
 
-      <!-- ── VENTANERÍA Y PUERTAS ── -->
-      <div id="tab-ventaneria" class="tab-panel">
-        <div class="sec-title">Ventanería y Puertas</div>
-        <div class="sec-desc">Suministro de puertas, ventanas y marcos. Selecciona el tipo para autocompletar el precio de referencia.</div>
+      <!-- ── PUERTAS ── -->
+      <div id="tab-puertas" class="tab-panel">
+        <div class="sec-title">Puertas</div>
+        <div class="sec-desc">Suministro de puertas y marcos. Selecciona el tipo para autocompletar el precio de referencia.</div>
         <div style="background:rgba(107,80,48,0.07);border:1px solid rgba(107,80,48,0.2);border-radius:8px;padding:12px 16px;margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;text-transform:uppercase;">Factores que aplican a Ventanería y Puertas</div>
+          <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;text-transform:uppercase;">Factores que aplican a Puertas</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;color:var(--ink);">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-puer-imp" onchange="calcAll()"> Imprevistos</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-puer-ind" onchange="calcAll()"> Costos indirectos</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-puer-adm" checked onchange="calcAll()"> Gastos admin.</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-puer-util" checked onchange="calcAll()"> Utilidad</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-puer-iva" checked onchange="calcAll()"> IVA</label>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--ink-mid);">Desmarca los factores que tu proveedor ya contempla en su precio.</div>
+        </div>
+        <div id="puertas-list"></div>
+        <button class="btn btn-primary" onclick="addPuerta()">+ Agregar Ítem</button>
+      </div>
+
+      <!-- ── VENTANAS ── -->
+      <div id="tab-ventanas" class="tab-panel">
+        <div class="sec-title">Ventanas</div>
+        <div class="sec-desc">Suministro de ventanas. Selecciona el tipo para autocompletar el precio de referencia.</div>
+        <div style="background:rgba(107,80,48,0.07);border:1px solid rgba(107,80,48,0.2);border-radius:8px;padding:12px 16px;margin-bottom:18px;">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:10px;text-transform:uppercase;">Factores que aplican a Ventanas</div>
           <div style="display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;color:var(--ink);">
             <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-vent-imp" onchange="calcAll()"> Imprevistos</label>
             <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="cf-vent-ind" onchange="calcAll()"> Costos indirectos</label>
@@ -687,8 +707,8 @@
           </div>
           <div style="margin-top:8px;font-size:10px;color:var(--ink-mid);">Desmarca los factores que tu proveedor ya contempla en su precio.</div>
         </div>
-        <div id="ventaneria-list"></div>
-        <button class="btn btn-primary" onclick="addVent()">+ Agregar Ítem</button>
+        <div id="ventanas-list"></div>
+        <button class="btn btn-primary" onclick="addVentana()">+ Agregar Ítem</button>
       </div>
 
       <!-- ── JARDINIZACIÓN ── -->
@@ -981,7 +1001,8 @@
         <div class="sum-row"><span class="sum-name">Costo directo base</span><span class="sum-val" id="s-cd-base">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Carpintería (fijo)</span><span class="sum-val" id="s-cd-carp" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Herrería (fijo)</span><span class="sum-val" id="s-cd-herr" style="font-size:12px;">Q 0.00</span></div>
-        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Ventanería y Puertas</span><span class="sum-val" id="s-cd-vent" style="font-size:12px;">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Puertas</span><span class="sum-val" id="s-cd-puer" style="font-size:12px;">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Ventanas</span><span class="sum-val" id="s-cd-vent" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos eléct.</span><span class="sum-val" id="s-cd-elec-art" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos sanit.</span><span class="sum-val" id="s-cd-hidr-art" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Equipo jacuzzi</span><span class="sum-val" id="s-cd-equip-esp" style="font-size:12px;">Q 0.00</span></div>
@@ -1201,8 +1222,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nVent=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0; nTablero=0;
-  ['elec-art-list','elec-cab-list','tablero-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','ventaneria-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nVent=0; nPuerta=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0; nTablero=0;
+  ['elec-art-list','elec-cab-list','tablero-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','puertas-list','ventanas-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1364,10 +1385,14 @@ function abrirProyecto(id) {
   const hf = proj.herrFactores || {};
   setChk('cf-herr-imp',  hf.imp,  false); setChk('cf-herr-ind',  hf.ind,  false);
   setChk('cf-herr-adm',  hf.adm,  true);  setChk('cf-herr-util', hf.util, true); setChk('cf-herr-iva', hf.iva, true);
-  const vf = proj.ventFactores || {};
+  const pf = proj.puertasFactores || {};
+  setChk('cf-puer-imp',  pf.imp,  false); setChk('cf-puer-ind',  pf.ind,  false);
+  setChk('cf-puer-adm',  pf.adm,  true);  setChk('cf-puer-util', pf.util, true); setChk('cf-puer-iva', pf.iva, true);
+  (proj.puertas || proj.vent || []).forEach(v => addPuerta(v.desc, v.cant, v.precio, v.selKey));
+  const vf = proj.ventanasFactores || proj.ventFactores || {};
   setChk('cf-vent-imp',  vf.imp,  false); setChk('cf-vent-ind',  vf.ind,  false);
   setChk('cf-vent-adm',  vf.adm,  true);  setChk('cf-vent-util', vf.util, true); setChk('cf-vent-iva', vf.iva, true);
-  (proj.vent || []).forEach(v => addVent(v.desc, v.cant, v.precio, v.selKey));
+  (proj.ventanas || []).forEach(v => addVentana(v.desc, v.cant, v.precio, v.selKey));
 
   // Eléctrica
   (proj.elec || []).forEach(e => {
@@ -1478,7 +1503,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nVent=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0, nTablero=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nVent=0, nPuerta=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0, nTablero=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1863,17 +1888,58 @@ function addHerreria() {
 }
 
 // ═══════════════════════════════════════════
-//  VENTANERÍA Y PUERTAS
+//  PUERTAS
 // ═══════════════════════════════════════════
-const VENT_TIPOS = [
+const PUERTA_TIPOS = [
   { key:'p_solida',  label:'Puerta sólida 0.90×2.10m'    },
   { key:'p_tablero', label:'Puerta tablero 0.90×2.10m'   },
   { key:'marco',     label:'Marco puerta 3"×3"'          },
+  { key:'custom',    label:'Personalizado (precio libre)' },
+];
+function puertaChange(sel) {
+  const card  = sel.closest('.card');
+  const key   = sel.value;
+  const prDef = key !== 'custom' && PRICE_DEFS[key] ? PRICE_DEFS[key].val : 0;
+  card.querySelector('.puer-precio').value = prDef || '';
+  const descEl = card.querySelector('.puer-desc');
+  if (!descEl.value && key !== 'custom') descEl.value = PRICE_DEFS[key]?.label || '';
+  calcAll();
+}
+function addPuerta(desc, cant, precio, selKey) {
+  nPuerta++;
+  const id   = 'puer-' + nPuerta;
+  const opts = PUERTA_TIPOS.map(t =>
+    `<option value="${t.key}"${(selKey||'p_solida')===t.key?' selected':''}>${t.label}</option>`).join('');
+  document.getElementById('puertas-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">🚪 Ítem ${nPuerta}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg"><label>Tipo</label><select class="puer-sel" onchange="puertaChange(this)">${opts}</select></div>
+        <div class="fg span2"><label>Descripción</label><input type="text" class="puer-desc" placeholder="Ej. Puerta principal madera caoba" value="${desc||''}" oninput="saveState()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="puer-cant" placeholder="1" min="1" step="1" value="${cant||'1'}" oninput="calcAllD()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="puer-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
+        Subtotal: <span id="puer-sub-${nPuerta}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
+        <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Sin imprevistos ni indirectos</span>
+      </div>
+    </div>`);
+  if (!precio && selKey && selKey !== 'custom') {
+    const el = document.getElementById(id);
+    if (el && PRICE_DEFS[selKey]) el.querySelector('.puer-precio').value = PRICE_DEFS[selKey].val;
+  }
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  VENTANAS
+// ═══════════════════════════════════════════
+const VENTANA_TIPOS = [
   { key:'v_alumin',  label:'Ventana aluminio 1.00×1.00m' },
   { key:'v_hierro',  label:'Ventana hierro 1.00×1.00m'   },
   { key:'custom',    label:'Personalizado (precio libre)' },
 ];
-function ventChange(sel) {
+function ventanaChange(sel) {
   const card  = sel.closest('.card');
   const key   = sel.value;
   const prDef = key !== 'custom' && PRICE_DEFS[key] ? PRICE_DEFS[key].val : 0;
@@ -1882,17 +1948,17 @@ function ventChange(sel) {
   if (!descEl.value && key !== 'custom') descEl.value = PRICE_DEFS[key]?.label || '';
   calcAll();
 }
-function addVent(desc, cant, precio, selKey) {
+function addVentana(desc, cant, precio, selKey) {
   nVent++;
   const id   = 'vent-' + nVent;
-  const opts = VENT_TIPOS.map(t =>
-    `<option value="${t.key}"${(selKey||'p_solida')===t.key?' selected':''}>${t.label}</option>`).join('');
-  document.getElementById('ventaneria-list').insertAdjacentHTML('beforeend', `
+  const opts = VENTANA_TIPOS.map(t =>
+    `<option value="${t.key}"${(selKey||'v_alumin')===t.key?' selected':''}>${t.label}</option>`).join('');
+  document.getElementById('ventanas-list').insertAdjacentHTML('beforeend', `
     <div class="card" id="${id}">
       <div class="card-head"><span class="card-title">🪟 Ítem ${nVent}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
       <div class="fgrid">
-        <div class="fg"><label>Tipo</label><select class="vent-sel" onchange="ventChange(this)">${opts}</select></div>
-        <div class="fg span2"><label>Descripción</label><input type="text" class="vent-desc" placeholder="Ej. Puerta principal madera caoba" value="${desc||''}" oninput="saveState()"></div>
+        <div class="fg"><label>Tipo</label><select class="vent-sel" onchange="ventanaChange(this)">${opts}</select></div>
+        <div class="fg span2"><label>Descripción</label><input type="text" class="vent-desc" placeholder="Ej. Ventana aluminio color natural" value="${desc||''}" oninput="saveState()"></div>
         <div class="fg"><label>Cantidad</label><input type="number" class="vent-cant" placeholder="1" min="1" step="1" value="${cant||'1'}" oninput="calcAllD()"></div>
         <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="vent-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
       </div>
@@ -2987,25 +3053,36 @@ function _calcAllReal() {
     if (subEl) subEl.textContent = 'Q '+monto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
 
-  // VENTANERÍA Y PUERTAS
+  // PUERTAS
+  let costoPuertas = 0;
+  (document.getElementById('puertas-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n   = card.id.replace('puer-','');
+    const sub = (+(card.querySelector('.puer-cant')?.value)||0) * (+(card.querySelector('.puer-precio')?.value)||0);
+    costoPuertas += sub;
+    const el = document.getElementById('puer-sub-'+n);
+    if (el) el.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+
+  // VENTANAS
   let costoVent = 0;
-  (document.getElementById('ventaneria-list')?.querySelectorAll('.card')||[]).forEach(card => {
-    const n    = card.id.replace('vent-','');
-    const sub  = (+(card.querySelector('.vent-cant')?.value)||0) * (+(card.querySelector('.vent-precio')?.value)||0);
+  (document.getElementById('ventanas-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n   = card.id.replace('vent-','');
+    const sub = (+(card.querySelector('.vent-cant')?.value)||0) * (+(card.querySelector('.vent-precio')?.value)||0);
     costoVent += sub;
     const el = document.getElementById('vent-sub-'+n);
     if (el) el.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
 
   // costoFijo = proveedores precio fijo (toggleable) + artefactos/jard/consultores (sin imp/ind, fijo)
-  const costoFijo    = costoCarp + costoHerr + costoVent + costoArtefactos;
+  const costoFijo    = costoCarp + costoHerr + costoPuertas + costoVent + costoArtefactos;
   const costoDirecto = costoBase + costoFijo;
 
   // ── FACTORES POR SECCIÓN ──
   const chk = id => !!(document.getElementById(id)?.checked);
-  const carpF = { imp: chk('cf-carp-imp'), ind: chk('cf-carp-ind'), adm: chk('cf-carp-adm'), util: chk('cf-carp-util'), iva: chk('cf-carp-iva') };
-  const herrF = { imp: chk('cf-herr-imp'), ind: chk('cf-herr-ind'), adm: chk('cf-herr-adm'), util: chk('cf-herr-util'), iva: chk('cf-herr-iva') };
-  const ventF = { imp: chk('cf-vent-imp'), ind: chk('cf-vent-ind'), adm: chk('cf-vent-adm'), util: chk('cf-vent-util'), iva: chk('cf-vent-iva') };
+  const carpF  = { imp: chk('cf-carp-imp'), ind: chk('cf-carp-ind'), adm: chk('cf-carp-adm'), util: chk('cf-carp-util'), iva: chk('cf-carp-iva') };
+  const herrF  = { imp: chk('cf-herr-imp'), ind: chk('cf-herr-ind'), adm: chk('cf-herr-adm'), util: chk('cf-herr-util'), iva: chk('cf-herr-iva') };
+  const puerF  = { imp: chk('cf-puer-imp'), ind: chk('cf-puer-ind'), adm: chk('cf-puer-adm'), util: chk('cf-puer-util'), iva: chk('cf-puer-iva') };
+  const ventF  = { imp: chk('cf-vent-imp'), ind: chk('cf-vent-ind'), adm: chk('cf-vent-adm'), util: chk('cf-vent-util'), iva: chk('cf-vent-iva') };
   // costoArtefactos: siempre excluido de imp/ind; siempre incluido en admin+util+iva
 
   const pImp  = getFactor('imprevistos');
@@ -3014,18 +3091,18 @@ function _calcAllReal() {
   const pUtil = getFactor('utilidad');
   const pIva  = getFactor('iva');
 
-  // Imp/Ind: costoBase + carp/herr/vent toggleables; artefactos siempre excluidos
-  const mImp = (costoBase + (carpF.imp ? costoCarp : 0) + (herrF.imp ? costoHerr : 0) + (ventF.imp ? costoVent : 0)) * pImp / 100;
-  const mInd = (costoBase + (carpF.ind ? costoCarp : 0) + (herrF.ind ? costoHerr : 0) + (ventF.ind ? costoVent : 0)) * pInd / 100;
+  // Imp/Ind: costoBase + carp/herr/puertas/ventanas toggleables; artefactos siempre excluidos
+  const mImp = (costoBase + (carpF.imp ? costoCarp : 0) + (herrF.imp ? costoHerr : 0) + (puerF.imp ? costoPuertas : 0) + (ventF.imp ? costoVent : 0)) * pImp / 100;
+  const mInd = (costoBase + (carpF.ind ? costoCarp : 0) + (herrF.ind ? costoHerr : 0) + (puerF.ind ? costoPuertas : 0) + (ventF.ind ? costoVent : 0)) * pInd / 100;
   const subtotal1 = costoDirecto + mImp + mInd;
 
   // Admin/Util: sobre subtotal1 completo, menos desactivados; artefactos SIEMPRE incluidos
-  const mAdm  = (subtotal1 - (!carpF.adm  ? costoCarp : 0) - (!herrF.adm  ? costoHerr : 0) - (!ventF.adm  ? costoVent : 0)) * pAdm  / 100;
-  const mUtil = (subtotal1 + mAdm - (!carpF.util ? costoCarp : 0) - (!herrF.util ? costoHerr : 0) - (!ventF.util ? costoVent : 0)) * pUtil / 100;
+  const mAdm  = (subtotal1 - (!carpF.adm  ? costoCarp : 0) - (!herrF.adm  ? costoHerr : 0) - (!puerF.adm  ? costoPuertas : 0) - (!ventF.adm  ? costoVent : 0)) * pAdm  / 100;
+  const mUtil = (subtotal1 + mAdm - (!carpF.util ? costoCarp : 0) - (!herrF.util ? costoHerr : 0) - (!puerF.util ? costoPuertas : 0) - (!ventF.util ? costoVent : 0)) * pUtil / 100;
   const subtotal  = subtotal1 + mAdm + mUtil;
 
   // IVA: aplicado UNA SOLA VEZ al final; artefactos siempre incluidos
-  const mIva  = (subtotal - (!carpF.iva ? costoCarp : 0) - (!herrF.iva ? costoHerr : 0) - (!ventF.iva ? costoVent : 0)) * pIva / 100;
+  const mIva  = (subtotal - (!carpF.iva ? costoCarp : 0) - (!herrF.iva ? costoHerr : 0) - (!puerF.iva ? costoPuertas : 0) - (!ventF.iva ? costoVent : 0)) * pIva / 100;
   const total = subtotal + mIva;
 
   const fmtQQ = v => 'Q ' + v.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -3045,7 +3122,7 @@ function _calcAllReal() {
   setQ('s-acab-costo',  costoAcabados);
   setQ('s-cer-mat',   costoCerMat);
   setQ('s-cer-total', costoCeramica);
-  setQ('s-cd-base', costoBase); setQ('s-cd-carp', costoCarp); setQ('s-cd-herr', costoHerr); setQ('s-cd-vent', costoVent);
+  setQ('s-cd-base', costoBase); setQ('s-cd-carp', costoCarp); setQ('s-cd-herr', costoHerr); setQ('s-cd-puer', costoPuertas); setQ('s-cd-vent', costoVent);
   setQ('s-cd-elec-art', costoElecArt); setQ('s-cd-hidr-art', costoHidrArt); setQ('s-cd-equip-esp', costoEquipoEsp);
   setQ('s-cd-jard', costoJard); setQ('s-cd-consult', costoConsult);
   setQ('s-cd', costoDirecto);
@@ -3185,14 +3262,23 @@ function saveState() {
     }));
     p.herrFactores = { imp: gChk('cf-herr-imp'), ind: gChk('cf-herr-ind'), adm: gChk('cf-herr-adm'), util: gChk('cf-herr-util'), iva: gChk('cf-herr-iva') };
 
-    p.vent = [];
-    (document.getElementById('ventaneria-list')?.querySelectorAll('.card')||[]).forEach(c => p.vent.push({
+    p.puertas = [];
+    (document.getElementById('puertas-list')?.querySelectorAll('.card')||[]).forEach(c => p.puertas.push({
+      desc:   c.querySelector('.puer-desc')?.value||'',
+      cant:   c.querySelector('.puer-cant')?.value||'1',
+      precio: c.querySelector('.puer-precio')?.value||'',
+      selKey: c.querySelector('.puer-sel')?.value||'p_solida'
+    }));
+    p.puertasFactores = { imp: gChk('cf-puer-imp'), ind: gChk('cf-puer-ind'), adm: gChk('cf-puer-adm'), util: gChk('cf-puer-util'), iva: gChk('cf-puer-iva') };
+
+    p.ventanas = [];
+    (document.getElementById('ventanas-list')?.querySelectorAll('.card')||[]).forEach(c => p.ventanas.push({
       desc:   c.querySelector('.vent-desc')?.value||'',
       cant:   c.querySelector('.vent-cant')?.value||'1',
       precio: c.querySelector('.vent-precio')?.value||'',
-      selKey: c.querySelector('.vent-sel')?.value||'p_solida'
+      selKey: c.querySelector('.vent-sel')?.value||'v_alumin'
     }));
-    p.ventFactores = { imp: gChk('cf-vent-imp'), ind: gChk('cf-vent-ind'), adm: gChk('cf-vent-adm'), util: gChk('cf-vent-util'), iva: gChk('cf-vent-iva') };
+    p.ventanasFactores = { imp: gChk('cf-vent-imp'), ind: gChk('cf-vent-ind'), adm: gChk('cf-vent-adm'), util: gChk('cf-vent-util'), iva: gChk('cf-vent-iva') };
 
     p.elec = [];
     document.querySelectorAll('#electrica-list > .card').forEach(c => p.elec.push({
@@ -4385,9 +4471,19 @@ function imprimirInterno() {
     herrRows.push([desc, prov, fmtQ(+mnt||0)]);
   });
 
-  // Ventanería y Puertas
+  // Puertas
+  const puertaRows = [];
+  (document.getElementById('puertas-list')?.querySelectorAll('.card')||[]).forEach(c => {
+    const desc = c.querySelector('.puer-desc')?.value || '—';
+    const cant = c.querySelector('.puer-cant')?.value || '1';
+    const prec = c.querySelector('.puer-precio')?.value || '0';
+    const sub  = (+cant||0) * (+prec||0);
+    if (sub > 0) puertaRows.push([desc, cant+' ud', fmtQ(+prec||0), fmtQ(sub)]);
+  });
+
+  // Ventanas
   const ventRows = [];
-  document.querySelectorAll('#ventaneria-list > .card').forEach(c => {
+  (document.getElementById('ventanas-list')?.querySelectorAll('.card')||[]).forEach(c => {
     const desc = c.querySelector('.vent-desc')?.value || '—';
     const cant = c.querySelector('.vent-cant')?.value || '1';
     const prec = c.querySelector('.vent-precio')?.value || '0';
@@ -4536,7 +4632,9 @@ function imprimirInterno() {
       [{label:'Descripción'},{label:'Proveedor'},{label:'Monto',r:true}], carpRows),
     Herreria:       secTable('⚒️','Herrería',
       [{label:'Descripción'},{label:'Proveedor'},{label:'Monto',r:true}], herrRows),
-    Ventaneria:     secTable('🪟','Ventanería y Puertas',
+    Puertas:        secTable('🚪','Puertas',
+      [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], puertaRows),
+    Ventanas:       secTable('🪟','Ventanas',
       [{label:'Descripción'},{label:'Cant.'},{label:'P. unit.'},{label:'Subtotal',r:true}], ventRows),
     Jardinizacion:  secTable('🌿','Jardinización',
       [{label:'Ítem'},{label:'Cantidad'},{label:'Nota'},{label:'P. unit.'},{label:'Subtotal',r:true}], jardRows),
