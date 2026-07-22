@@ -586,6 +586,15 @@
           <button class="btn btn-outline" onclick="addHidrArt()">+ Agregar Artefacto</button>
         </div>
         <div id="hidr-art-list"></div>
+
+        <div class="subsec" style="margin-top:28px;">
+          <div>
+            <div class="subsec-title">Cajas de Registro de Block</div>
+            <div class="subsec-hint">Block 0.15m · 2 losas concreto 3500 psi + electromalla cal. 6 · Dimensiones mínimas interiores 0.80×1.00m</div>
+          </div>
+          <button class="btn btn-outline" onclick="addCajaRegistro()">+ Agregar Caja</button>
+        </div>
+        <div id="cajreg-list"></div>
       </div>
 
       <!-- ── CARPINTERÍA ── -->
@@ -1131,8 +1140,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0;
-  ['elec-art-list','hidr-art-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0;
+  ['elec-art-list','hidr-art-list','cajreg-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1310,6 +1319,16 @@ function abrirProyecto(id) {
     card.querySelector('.hidr-acc').value  = h.acc  || '';
   });
   (proj.hidrArt || []).forEach(a => addHidrArt(a.desc, a.cant, a.precio));
+  (proj.cajReg  || []).forEach(cr => {
+    addCajaRegistro();
+    const card = document.getElementById('cajreg-' + nCajReg);
+    if (!card) return;
+    card.querySelector('.cajreg-desc').value  = cr.desc  || '';
+    card.querySelector('.cajreg-largo').value = cr.largo || '';
+    card.querySelector('.cajreg-ancho').value = cr.ancho || '';
+    card.querySelector('.cajreg-alto').value  = cr.alto  || '';
+    card.querySelector('.cajreg-n').value     = cr.n     || '1';
+  });
 
   // Jardinización
   (proj.jard || []).forEach(j => addJard(j.tipo, j.qty, j.precio, j.nota));
@@ -1358,7 +1377,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1804,6 +1823,28 @@ function addElecArt(desc, cant, precio) {
         Subtotal: <span id="ea-sub-${nElecArt}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
         <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Admin + Util + IVA</span>
       </div>
+    </div>`);
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  CAJAS DE REGISTRO
+// ═══════════════════════════════════════════
+function addCajaRegistro() {
+  nCajReg++;
+  const id = 'cajreg-' + nCajReg;
+  document.getElementById('cajreg-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">🔲 Caja de Registro ${nCajReg}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg span2"><label>Descripción</label><input type="text" class="cajreg-desc" placeholder="Ej. Caja de registro drenaje pluvial" oninput="saveState()"></div>
+        <div class="fg"><label>Largo interior (m) <span style="font-size:10px;opacity:.7">mín 0.80</span></label><input type="number" class="cajreg-largo" placeholder="0.80" min="0.80" step="0.05" oninput="calcAllD()"></div>
+        <div class="fg"><label>Ancho interior (m) <span style="font-size:10px;opacity:.7">mín 1.00</span></label><input type="number" class="cajreg-ancho" placeholder="1.00" min="1.00" step="0.05" oninput="calcAllD()"></div>
+        <div class="fg"><label>Altura interior (m)</label><input type="number" class="cajreg-alto" placeholder="1.20" min="0.30" step="0.10" oninput="calcAllD()"></div>
+        <div class="fg"><label>Cantidad (ud)</label><input type="number" class="cajreg-n" placeholder="1" min="1" step="1" value="1" oninput="calcAllD()"></div>
+      </div>
+      <div id="cajreg-mat-${nCajReg}" style="margin-top:10px;font-size:12px;color:var(--ink-mid);line-height:2.0;background:rgba(0,0,0,0.03);border-radius:6px;padding:8px 12px;">—</div>
+      <div style="margin-top:6px;font-size:13px;">Subtotal: <span id="cajreg-sub-${nCajReg}" style="color:var(--gold);font-weight:700;">Q 0.00</span></div>
     </div>`);
   calcAll();
 }
@@ -2340,6 +2381,58 @@ function _calcAllReal() {
     if (el) el.textContent = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
 
+  // CAJAS DE REGISTRO DE BLOCK
+  let costoCajReg = 0;
+  (document.getElementById('cajreg-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n     = card.id.replace('cajreg-','');
+    const largo = Math.max(+(card.querySelector('.cajreg-largo')?.value)||0, 0.80);
+    const ancho = Math.max(+(card.querySelector('.cajreg-ancho')?.value)||0, 1.00);
+    const alto  = Math.max(+(card.querySelector('.cajreg-alto')?.value)||0, 0.30);
+    const cant  = Math.max(+(card.querySelector('.cajreg-n')?.value)||1, 1);
+
+    // Paredes de block 0.15m
+    const areaParedes = 2*(largo+ancho) * alto;
+    const nBlocks     = Math.ceil(areaParedes * 12.5 * 1.05);
+    const cemMort     = +(areaParedes * 0.30).toFixed(2);  // sacos cemento mortero
+    const areMort     = +(areaParedes * 0.025).toFixed(3); // m³ arena mortero
+
+    // 2 losas concreto 3500 psi (dimensiones exteriores: +0.30 en cada dirección)
+    const largoExt  = largo + 0.30;
+    const anchoExt  = ancho + 0.30;
+    const volLosa   = largoExt * anchoExt * 0.10; // espesor 10cm por losa
+    const volConc   = +(2 * volLosa).toFixed(3);
+    const cemConc   = +(volConc * 7.5).toFixed(1); // sacos cemento 3500psi
+    const areConc   = +(volConc * 0.50).toFixed(3); // m³ arena
+    const pieConc   = +(volConc * 0.75).toFixed(3); // m³ piedrín 3/4"
+
+    // Electromalla calibre 6 (lámina 2.35×6.00m = 14.1 m²) para 2 losas
+    const areaLosa  = largoExt * anchoExt;
+    const nMallas   = Math.ceil(2 * areaLosa * 1.15 / 14.1);
+
+    const cemTotal  = +(cemMort + cemConc).toFixed(1);
+    const areTotal  = +(areMort + areConc).toFixed(3);
+
+    const sub = (
+      nBlocks  * getPrecio('block_15') +
+      areaParedes * getPrecio('mo_block') +
+      cemTotal * getPrecio('cemento') +
+      areTotal * getPrecio('arena_rio') +
+      pieConc  * getPrecio('piedrin34') +
+      volConc  * getPrecio('mo_conc') +
+      nMallas  * getPrecio('malla')
+    ) * cant;
+
+    costoCajReg += sub;
+    hidrCosto   += sub;
+
+    const matEl = document.getElementById('cajreg-mat-'+n);
+    if (matEl) matEl.innerHTML =
+      `<b>Block 0.15m:</b> ${nBlocks} ud &nbsp;·&nbsp; <b>Cemento:</b> ${cemTotal} sacos &nbsp;·&nbsp; <b>Arena:</b> ${areTotal} m³`+
+      `<br><b>Piedrín ¾":</b> ${pieConc} m³ &nbsp;·&nbsp; <b>Electromalla cal.6:</b> ${nMallas} lám. &nbsp;·&nbsp; <b>Concreto:</b> ${volConc} m³ (2 losas)`;
+    const subEl = document.getElementById('cajreg-sub-'+n);
+    if (subEl) subEl.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+
   // ARTEFACTOS SANITARIOS (mismo esquema)
   let costoHidrArt = 0;
   document.querySelectorAll('#hidr-art-list > .card').forEach(card => {
@@ -2628,6 +2721,14 @@ function saveState() {
     p.hidrArt = [];
     document.querySelectorAll('#hidr-art-list > .card').forEach(c => p.hidrArt.push({
       desc: c.querySelector('.ha-desc')?.value||'', cant: c.querySelector('.ha-cant')?.value||'', precio: c.querySelector('.ha-precio')?.value||''
+    }));
+    p.cajReg = [];
+    (document.getElementById('cajreg-list')?.querySelectorAll('.card')||[]).forEach(c => p.cajReg.push({
+      desc:  c.querySelector('.cajreg-desc')?.value||'',
+      largo: c.querySelector('.cajreg-largo')?.value||'',
+      ancho: c.querySelector('.cajreg-ancho')?.value||'',
+      alto:  c.querySelector('.cajreg-alto')?.value||'',
+      n:     c.querySelector('.cajreg-n')?.value||'1'
     }));
 
     p.jard = [];
