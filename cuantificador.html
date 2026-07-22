@@ -1793,6 +1793,12 @@ function addElectrico() {
 // ═══════════════════════════════════════════
 //  HIDRÁULICA
 // ═══════════════════════════════════════════
+const _hidrMoPrecios = { a12:250, a34:300, a1:375, d2:650, d3:156.47, d4:156.47 };
+function hidrDiamChange(sel) {
+  const moPrecEl = sel.closest('.card').querySelector('.hidr-mo-precio');
+  if (moPrecEl) moPrecEl.value = _hidrMoPrecios[sel.value] || '';
+  calcAll();
+}
 function addHidraulico() {
   nHidr++;
   const id = 'hidr-' + nHidr;
@@ -1803,7 +1809,7 @@ function addHidraulico() {
         <div class="fg span2"><label>Descripción</label><input type="text" class="hidr-desc" placeholder="Ej. Agua fría baño principal" oninput="saveState()"></div>
         <div class="fg">
           <label>Diámetro / Tipo</label>
-          <select class="hidr-diam" onchange="calcAll()">
+          <select class="hidr-diam" onchange="hidrDiamChange(this)">
             <option value="a12">Agua ½"</option>
             <option value="a34">Agua ¾"</option>
             <option value="a1">Agua 1"</option>
@@ -1819,7 +1825,7 @@ function addHidraulico() {
             <input type="checkbox" class="hidr-mo" onchange="calcAll()"> Incluye mano de obra
           </label>
           <span style="font-size:11px;color:var(--ink-mid);">M.O./punto (Q):</span>
-          <input type="number" class="hidr-mo-precio" placeholder="0.00" min="0" step="0.01" style="width:90px;font-size:12px;" oninput="calcAllD()">
+          <input type="number" class="hidr-mo-precio" value="250.00" min="0" step="0.01" style="width:90px;font-size:12px;" oninput="calcAllD()">
         </div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
@@ -1875,7 +1881,9 @@ function equipoEspChange(sel) {
   if (key && PRICE_DEFS[key]) {
     card.querySelector('.eesp-precio').value = PRICE_DEFS[key].val;
     card.querySelector('.eesp-desc').value   = card.querySelector('.eesp-desc').value || PRICE_DEFS[key].label;
-    // MO precio editable por el usuario — no se auto-rellena
+    const moKey = _moJacMap[key];
+    const moPrecEl = card.querySelector('.eesp-mo-precio');
+    if (moPrecEl && moKey) moPrecEl.value = PRICE_DEFS[moKey]?.val || '';
   }
   calcAll();
 }
