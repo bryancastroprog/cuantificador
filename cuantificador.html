@@ -1658,6 +1658,7 @@ function addColumna() {
         &nbsp;·&nbsp; Subtotal:
         <span id="col-sub-${nCol}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
       </div>
+      <div id="col-det-${nCol}" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(107,80,48,0.06);border-radius:6px;font-size:11px;color:var(--ink-mid);flex-wrap:wrap;gap:6px 18px;"></div>
     </div>`);
   calcAll();
 }
@@ -2634,7 +2635,9 @@ function _calcAllReal() {
   const _pH2 = getPrecio('hierro2'), _pAl = getPrecio('alambre');
   const _fmtS = v => 'Q '+v.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // COLUMNAS
+  // COLUMNAS — concreto estructural 5000 PSI
+  const _cM3_col = 10*1.05*getPrecio('cemento') + 0.40*1.05*getPrecio('arena_rio')
+                 + 0.75*1.05*getPrecio('piedrin12') + getPrecio('mo_conc');
   let volCol=0, mH4col=0, mH2col=0;
   (document.getElementById('columnas-list')?.querySelectorAll('.card')||[]).forEach(c => {
     const n=c.id.replace('col-','');
@@ -2645,11 +2648,27 @@ function _calcAllReal() {
     const h4i=4*alt*1.15*cant, h2i=Math.ceil(alt/0.20)*(2*(b+hh)+0.10)*cant;
     const v4i=Math.ceil(h4i/6), v2i=Math.ceil(h2i/6);
     const alI=Math.max(1,Math.ceil((v4i+v2i)/50));
-    const subI=volI*_cM3 + v4i*_pH4 + v2i*_pH2 + alI*_pAl;
+    const areaForm = 2*(b+hh)*alt*cant;
+    const costForm  = areaForm * getPrecio('mo_form_col');
+    const subI=volI*_cM3_col + v4i*_pH4 + v2i*_pH2 + alI*_pAl + costForm;
     volCol+=volI; mH4col+=h4i; mH2col+=h2i;
+    // desglose materiales
+    const sacCol  = Math.ceil(volI * 10 * 1.05);
+    const areCol  = (volI * 0.40 * 1.05).toFixed(2);
+    const pieCol  = (volI * 0.75 * 1.05).toFixed(2);
+    const moConcrCol = volI * getPrecio('mo_conc');
     const eV=document.getElementById('col-vol-'+n), eS=document.getElementById('col-sub-'+n);
     if(eV) eV.textContent=volI.toFixed(3)+' m³';
     if(eS) eS.textContent=_fmtS(subI);
+    const eDet=document.getElementById('col-det-'+n);
+    if (eDet) {
+      if (volI > 0) {
+        eDet.style.display='flex';
+        eDet.innerHTML=`<span>🔧 <b>Varilla #4:</b> ${v4i} var. 6m</span><span>🔩 <b>Estrib. #2:</b> ${v2i} var.</span><span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento 5000psi:</b> ${sacCol} sacos</span><span>🏖️ <b>Arena:</b> ${areCol} m³</span><span>🪨 <b>Piedrín ½":</b> ${pieCol} m³</span><span>👷 <b>M.O. concreto:</b> ${_fmtS(moConcrCol)}</span><span>🪵 <b>Formaleta:</b> ${areaForm.toFixed(2)} m² → ${_fmtS(costForm)}</span>`;
+      } else {
+        eDet.style.display='none';
+      }
+    }
   });
 
   // VIGAS
@@ -3589,6 +3608,7 @@ const PRICE_DEFS = {
   mo_tabique:{ cat:'👷 Mano de Obra', label:'Tabique / drywall',      unit:'m²',    val:57.53 },
   mo_cielo:  { cat:'👷 Mano de Obra', label:'Cielo falso',            unit:'m²',    val:68.01 },
   mo_conc:   { cat:'👷 Mano de Obra', label:'Concreto armado',        unit:'m³',    val:439.76},
+  mo_form_col:{ cat:'👷 Mano de Obra', label:'Formaleta columnas (mat+MO)', unit:'m²', val:120.00},
   vigueta_ml:  { cat:'🏗️ Concreto', label:'Vigueta pretensada T-12', unit:'ml',    val:38.00  },
   bovedilla_ud:{ cat:'🏗️ Concreto', label:'Bovedilla 25×25cm',       unit:'ud',    val:15.00  },
   mo_vig_bov:  { cat:'👷 Mano de Obra', label:'Tendido vigueta y bovedilla', unit:'m²', val:45.00 },
