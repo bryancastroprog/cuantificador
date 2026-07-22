@@ -1324,13 +1324,20 @@ function abrirProyecto(id) {
     addHidraulico();
     const card = document.getElementById('hidr-' + nHidr);
     if (!card) return;
-    card.querySelector('.hidr-desc').value = h.desc || '';
-    card.querySelector('.hidr-diam').value = h.diam || 'a12';
-    card.querySelector('.hidr-l').value    = h.l    || '';
-    card.querySelector('.hidr-acc').value  = h.acc  || '';
+    card.querySelector('.hidr-desc').value    = h.desc || '';
+    card.querySelector('.hidr-diam').value    = h.diam || 'a12';
+    card.querySelector('.hidr-l').value       = h.l    || '';
+    card.querySelector('.hidr-acc').value     = h.acc  || '';
+    if (h.mo) card.querySelector('.hidr-mo').checked = true;
   });
   (proj.hidrArt || []).forEach(a => addHidrArt(a.desc, a.cant, a.precio));
-  (proj.equipoEsp || []).forEach(e => addEquipoEsp(e.desc, e.cant, e.precio, e.selKey));
+  (proj.equipoEsp || []).forEach(e => {
+    addEquipoEsp(e.desc, e.cant, e.precio, e.selKey);
+    const card = document.getElementById('eesp-' + nEquipoEsp);
+    if (!card) return;
+    if (e.mo) card.querySelector('.eesp-mo').checked = true;
+    if (e.moPrecio) card.querySelector('.eesp-mo-precio').value = e.moPrecio;
+  });
   (proj.cajReg  || []).forEach(cr => {
     addCajaRegistro();
     const card = document.getElementById('cajreg-' + nCajReg);
@@ -1806,6 +1813,12 @@ function addHidraulico() {
         </div>
         <div class="fg"><label>Longitud (m)</label><input type="number" class="hidr-l" placeholder="0.00" min="0" step="0.5" oninput="calcAllD()"></div>
         <div class="fg"><label>Accesorios (codos/tees)</label><input type="number" class="hidr-acc" placeholder="0" min="0" step="1" oninput="calcAllD()"></div>
+        <div class="fg span2" style="display:flex;align-items:center;gap:10px;padding-top:4px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="hidr-mo" onchange="calcAll()"> Incluye mano de obra
+          </label>
+          <span id="hidr-mo-lbl-${nHidr}" style="font-size:11px;color:var(--gold2);"></span>
+        </div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
         Tubos 6m: <span id="hidr-tub-${nHidr}" style="color:var(--ink);font-weight:600;">0</span>
@@ -1850,12 +1863,19 @@ function _equipoEspOpts() {
     .join('');
   return custom + items;
 }
+const _moJacMap = {
+  jac_jet:'mo_jac_jet', jac_bomba:'mo_jac_bomba', jac_calentador:'mo_jac_calentador',
+  jac_filtro:'mo_jac_filtro', jac_manifold:'mo_jac_manifold', jac_mezcladora:'mo_jac_mezcladora',
+};
 function equipoEspChange(sel) {
   const card = sel.closest('.card');
   const key  = sel.value;
   if (key && PRICE_DEFS[key]) {
     card.querySelector('.eesp-precio').value = PRICE_DEFS[key].val;
     card.querySelector('.eesp-desc').value   = card.querySelector('.eesp-desc').value || PRICE_DEFS[key].label;
+    const moKey = _moJacMap[key];
+    const moPrecEl = card.querySelector('.eesp-mo-precio');
+    if (moPrecEl) moPrecEl.value = moKey ? getPrecio(moKey) : '';
   }
   calcAll();
 }
@@ -1873,6 +1893,13 @@ function addEquipoEsp(desc, cant, precio, selKey) {
         <div class="fg span2"><label>Descripción</label><input type="text" class="eesp-desc" placeholder="Ej. Bomba de hidromasaje 2 HP" value="${desc||''}" oninput="saveState()"></div>
         <div class="fg"><label>Cantidad</label><input type="number" class="eesp-cant" placeholder="1" min="1" step="1" value="${cant||''}" oninput="calcAllD()"></div>
         <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="eesp-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
+        <div class="fg span2" style="display:flex;align-items:center;gap:12px;padding-top:4px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;">
+            <input type="checkbox" class="eesp-mo" onchange="calcAll()"> Incluye mano de obra
+          </label>
+          <span style="font-size:11px;color:var(--ink-mid);">M.O. unit. (Q):</span>
+          <input type="number" class="eesp-mo-precio" placeholder="0.00" min="0" step="0.01" style="width:90px;font-size:12px;" oninput="calcAllD()">
+        </div>
       </div>
       <div style="margin-top:10px;font-size:13px;color:var(--ink-mid);">
         Subtotal: <span id="eesp-sub-${nEquipoEsp}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
@@ -2403,23 +2430,29 @@ function _calcAllReal() {
   // HIDRÁULICA
   const hidrTubs = {a12:0, a34:0, a1:0, d2:0, d3:0, d4:0};
   let hidrAcc=0, hidrCosto=0, moHidr=0;
-  const hidrKey = { a12:'pvc_a12', a34:'pvc_a34', a1:'pvc_a1', d2:'pvc_d2', d3:'pvc_d3', d4:'pvc_d4' };
+  const hidrKey   = { a12:'pvc_a12', a34:'pvc_a34', a1:'pvc_a1', d2:'pvc_d2', d3:'pvc_d3', d4:'pvc_d4' };
+  const hidrMoKey = { a12:'mo_hidr_12', a34:'mo_hidr_34', a1:'mo_hidr_1', d2:'mo_hidr_2', d3:'mo_hidr', d4:'mo_hidr' };
   document.querySelectorAll('#hidraulica-list > .card').forEach(card => {
-    const n    = card.id.replace('hidr-','');
-    const diam = card.querySelector('.hidr-diam')?.value || 'a12';
-    const lng  = +(card.querySelector('.hidr-l')?.value)   || 0;
-    const acc  = +(card.querySelector('.hidr-acc')?.value) || 0;
-    const tubs = Math.ceil(lng / 6 * 1.10);
+    const n      = card.id.replace('hidr-','');
+    const diam   = card.querySelector('.hidr-diam')?.value || 'a12';
+    const lng    = +(card.querySelector('.hidr-l')?.value)   || 0;
+    const acc    = +(card.querySelector('.hidr-acc')?.value) || 0;
+    const inclMo = card.querySelector('.hidr-mo')?.checked || false;
+    const tubs   = Math.ceil(lng / 6 * 1.10);
     const accEst = Math.ceil(lng / 4) + acc;
-    const thisMoHidr = (lng / 5) * getPrecio('mo_hidr');
-    const sub  = tubs * getPrecio(hidrKey[diam])
-               + accEst * getPrecio('codo12')
-               + thisMoHidr;
+    const pts    = Math.ceil(lng / 5);
+    const moPrecio = getPrecio(hidrMoKey[diam]);
+    const thisMoHidr = inclMo ? pts * moPrecio : 0;
+    const sub = tubs * getPrecio(hidrKey[diam])
+              + accEst * getPrecio('codo12')
+              + thisMoHidr;
     hidrTubs[diam] += tubs; hidrAcc += accEst; hidrCosto += sub; moHidr += thisMoHidr;
-    const tubEl = document.getElementById('hidr-tub-'+n);
-    const subEl = document.getElementById('hidr-sub-'+n);
-    if (tubEl) tubEl.textContent = tubs;
-    if (subEl) subEl.textContent = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const tubEl   = document.getElementById('hidr-tub-'+n);
+    const subEl   = document.getElementById('hidr-sub-'+n);
+    const moLblEl = document.getElementById('hidr-mo-lbl-'+n);
+    if (tubEl)   tubEl.textContent = tubs;
+    if (subEl)   subEl.textContent = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if (moLblEl) moLblEl.textContent = inclMo ? `M.O.: ${pts} pto × Q${moPrecio.toLocaleString('es-GT',{minimumFractionDigits:2})} = Q${thisMoHidr.toLocaleString('es-GT',{minimumFractionDigits:2})}` : '';
   });
   set('s-hidr-a12', hidrTubs.a12); set('s-hidr-a34', hidrTubs.a34); set('s-hidr-a1', hidrTubs.a1);
   set('s-hidr-d2',  hidrTubs.d2);  set('s-hidr-d3',  hidrTubs.d3);  set('s-hidr-d4', hidrTubs.d4);
@@ -2559,8 +2592,12 @@ function _calcAllReal() {
   // EQUIPOS ESPECIALES
   let costoEquipoEsp = 0;
   (document.getElementById('equip-esp-list')?.querySelectorAll('.card')||[]).forEach(card => {
-    const n   = card.id.replace('eesp-','');
-    const sub = (+(card.querySelector('.eesp-cant')?.value)||0) * (+(card.querySelector('.eesp-precio')?.value)||0);
+    const n       = card.id.replace('eesp-','');
+    const cant    = +(card.querySelector('.eesp-cant')?.value)||0;
+    const precio  = +(card.querySelector('.eesp-precio')?.value)||0;
+    const inclMo  = card.querySelector('.eesp-mo')?.checked || false;
+    const moPrecio= +(card.querySelector('.eesp-mo-precio')?.value)||0;
+    const sub     = cant * precio + (inclMo ? cant * moPrecio : 0);
     costoEquipoEsp += sub;
     const el = document.getElementById('eesp-sub-'+n);
     if (el) el.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -2785,7 +2822,8 @@ function saveState() {
     p.hidr = [];
     document.querySelectorAll('#hidraulica-list > .card').forEach(c => p.hidr.push({
       desc: c.querySelector('.hidr-desc')?.value||'', diam: c.querySelector('.hidr-diam')?.value||'a12',
-      l:    c.querySelector('.hidr-l')?.value||'',    acc:  c.querySelector('.hidr-acc')?.value||''
+      l:    c.querySelector('.hidr-l')?.value||'',    acc:  c.querySelector('.hidr-acc')?.value||'',
+      mo:   c.querySelector('.hidr-mo')?.checked||false
     }));
     p.hidrArt = [];
     document.querySelectorAll('#hidr-art-list > .card').forEach(c => p.hidrArt.push({
@@ -2793,10 +2831,12 @@ function saveState() {
     }));
     p.equipoEsp = [];
     (document.getElementById('equip-esp-list')?.querySelectorAll('.card')||[]).forEach(c => p.equipoEsp.push({
-      desc:   c.querySelector('.eesp-desc')?.value||'',
-      cant:   c.querySelector('.eesp-cant')?.value||'',
-      precio: c.querySelector('.eesp-precio')?.value||'',
-      selKey: c.querySelector('.eesp-sel')?.value||''
+      desc:     c.querySelector('.eesp-desc')?.value||'',
+      cant:     c.querySelector('.eesp-cant')?.value||'',
+      precio:   c.querySelector('.eesp-precio')?.value||'',
+      selKey:   c.querySelector('.eesp-sel')?.value||'',
+      mo:       c.querySelector('.eesp-mo')?.checked||false,
+      moPrecio: c.querySelector('.eesp-mo-precio')?.value||''
     }));
     p.cajReg = [];
     (document.getElementById('cajreg-list')?.querySelectorAll('.card')||[]).forEach(c => p.cajReg.push({
@@ -2961,8 +3001,20 @@ const PRICE_DEFS = {
   mo_pint:   { cat:'👷 Mano de Obra', label:'Pintura',                unit:'m²',    val:15.70 },
   mo_cer_p:  { cat:'👷 Mano de Obra', label:'Cerámica piso',          unit:'m²',    val:47.04 },
   mo_cer_w:  { cat:'👷 Mano de Obra', label:'Cerámica pared',         unit:'m²',    val:60.64 },
-  mo_elec:   { cat:'👷 Mano de Obra', label:'Instalación eléctrica',  unit:'punto', val:188.18},
-  mo_hidr:   { cat:'👷 Mano de Obra', label:'Instalación hidráulica', unit:'punto', val:156.47},
+  mo_elec:   { cat:'👷 Mano de Obra', label:'Instalación eléctrica',        unit:'punto', val:188.18},
+  mo_hidr:   { cat:'👷 Mano de Obra', label:'Instalación hidráulica',      unit:'punto', val:156.47},
+  mo_hidr_12:{ cat:'👷 Mano de Obra', label:'M.O. salida hidráulica ½"',   unit:'punto', val:250.00},
+  mo_hidr_34:{ cat:'👷 Mano de Obra', label:'M.O. salida hidráulica ¾"',   unit:'punto', val:300.00},
+  mo_hidr_1: { cat:'👷 Mano de Obra', label:'M.O. salida hidráulica 1"',   unit:'punto', val:375.00},
+  mo_hidr_15:{ cat:'👷 Mano de Obra', label:'M.O. salida hidráulica 1½"',  unit:'punto', val:500.00},
+  mo_hidr_2: { cat:'👷 Mano de Obra', label:'M.O. salida hidráulica 2"',   unit:'punto', val:650.00},
+  mo_jac_jet:       { cat:'👷 Mano de Obra', label:'M.O. instalación jet hidromasaje',      unit:'ud',   val:350.00 },
+  mo_jac_bomba:     { cat:'👷 Mano de Obra', label:'M.O. instalación bomba hidromasaje',    unit:'ud',   val:1250.00},
+  mo_jac_calentador:{ cat:'👷 Mano de Obra', label:'M.O. instalación calentador spa',       unit:'ud',   val:1500.00},
+  mo_jac_filtro:    { cat:'👷 Mano de Obra', label:'M.O. instalación filtro spa',           unit:'ud',   val:600.00 },
+  mo_jac_manifold:  { cat:'👷 Mano de Obra', label:'M.O. instalación manifold PVC',         unit:'ud',   val:850.00 },
+  mo_jac_mezcladora:{ cat:'👷 Mano de Obra', label:'M.O. instalación mezcladora termostática', unit:'ud', val:450.00},
+  mo_hidr_pruebas:  { cat:'👷 Mano de Obra', label:'Pruebas hidráulicas y puesta en marcha', unit:'lote', val:1200.00},
   // Equipos Especiales — Jacuzzi / Spa
   jac_bomba:      { cat:'⚙️ Equipos Especiales', label:'Bomba de hidromasaje 2 HP',                       unit:'ud',  val:4500.00  },
   jac_calentador: { cat:'⚙️ Equipos Especiales', label:'Calentador a gas para spa 175,000 BTU/h',         unit:'ud',  val:18000.00 },
@@ -2972,6 +3024,7 @@ const PRICE_DEFS = {
   jac_mezcladora: { cat:'⚙️ Equipos Especiales', label:'Mezcladora termostática ¾"',                      unit:'ud',  val:1750.00  },
   jac_jet:        { cat:'⚙️ Equipos Especiales', label:'Jet de hidromasaje completo',                     unit:'ud',  val:275.00   },
   jac_manifold:   { cat:'⚙️ Equipos Especiales', label:'Manifold PVC hidráulico, válvulas y accesorios',  unit:'lote',val:1750.00  },
+  jac_pruebas:    { cat:'⚙️ Equipos Especiales', label:'Pruebas hidráulicas y puesta en marcha',           unit:'lote',val:1200.00  },
   // Jardinización
   lona_obra:      { cat:'🌿 Jardinización', label:'Lona para obra',                    unit:'m²', val:15.00  },
   bordillo:       { cat:'🌿 Jardinización', label:'Bordillo de concreto 3000 psi',     unit:'ml', val:45.00  },
