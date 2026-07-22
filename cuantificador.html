@@ -578,6 +578,15 @@
           <button class="btn btn-outline" onclick="addElecCable()">+ Agregar Cable</button>
         </div>
         <div id="elec-cab-list"></div>
+
+        <div class="subsec" style="margin-top:28px;">
+          <div>
+            <div class="subsec-title">Tablero Eléctrico</div>
+            <div class="subsec-hint">Selecciona cantidad de polos · Precio de referencia CELASA 2026 · Precios editables</div>
+          </div>
+          <button class="btn btn-outline" onclick="addTablero()">+ Agregar Tablero</button>
+        </div>
+        <div id="tablero-list"></div>
       </div>
 
       <!-- ── HIDRÁULICA ── -->
@@ -892,6 +901,7 @@
         <div class="sum-row"><span class="sum-name">Sum. e inst. alambre #12</span><span><span id="s-elec-w12" class="sum-val zero">0</span><span class="sum-unit">rollos</span></span></div>
         <div class="sum-row"><span class="sum-name">Sum. e inst. alambre #10</span><span><span id="s-elec-w10" class="sum-val zero">0</span><span class="sum-unit">rollos</span></span></div>
         <div class="sum-row"><span class="sum-name">Sum. e inst. cajas rect.</span><span><span id="s-elec-caja" class="sum-val zero">0</span><span class="sum-unit">ud</span></span></div>
+        <div class="sum-row"><span class="sum-name">Tablero eléctrico</span><span class="sum-val" id="s-tablero-costo">Q 0.00</span></div>
         <div class="sum-total-box" style="margin-top:6px;">
           <div class="sum-row"><span class="sum-name">TOTAL ELÉCTRICA</span><span class="sum-val" id="s-elec-costo">Q 0.00</span></div>
         </div>
@@ -1170,8 +1180,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0;
-  ['elec-art-list','elec-cab-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0; nTablero=0;
+  ['elec-art-list','elec-cab-list','tablero-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1384,6 +1394,9 @@ function abrirProyecto(id) {
   });
 
   (proj.tuboHidr || []).forEach(t => addTuboHidr(t.desc, t.metros, t.tipKey));
+  (proj.tableros || []).forEach(t => {
+    addTablero(t.desc, t.cant, t.precio, t.selKey, t.mo, t.moPrecio);
+  });
 
   // Jardinización
   (proj.jard || []).forEach(j => addJard(j.tipo, j.qty, j.precio, j.nota));
@@ -1432,7 +1445,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0, nTablero=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1950,6 +1963,65 @@ function addTuboHidr(desc, metros, tipKey) {
       </div>
       <div id="thudr-res-${nTuboHidr}" style="margin-top:10px;font-size:12px;color:var(--ink-mid);">—</div>
     </div>`);
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  TABLERO ELÉCTRICO
+// ═══════════════════════════════════════════
+const TABLERO_TIPOS = [
+  { key:'panel4',  label:'4 polos  — 125A' },
+  { key:'panel6',  label:'6 polos  — 125A' },
+  { key:'panel8',  label:'8 polos  — 125A' },
+  { key:'panel12', label:'12 polos — 125A' },
+  { key:'panel16', label:'16 polos — 125A' },
+  { key:'panel24', label:'24 polos — 125A' },
+  { key:'panel32', label:'32 polos — 200A' },
+  { key:'panel42', label:'42 polos — 225A' },
+];
+function tableroChange(sel) {
+  const card = sel.closest('.card');
+  const key  = sel.value;
+  if (key && PRICE_DEFS[key]) {
+    card.querySelector('.tab-precio').value = PRICE_DEFS[key].val;
+    const descEl = card.querySelector('.tab-desc');
+    if (!descEl.value) descEl.value = PRICE_DEFS[key].label;
+  }
+  calcAll();
+}
+function addTablero(desc, cant, precio, selKey, mo, moPrecio) {
+  nTablero++;
+  const id   = 'tablero-' + nTablero;
+  const opts = TABLERO_TIPOS.map(t =>
+    `<option value="${t.key}"${(selKey||'panel12')===t.key?' selected':''}>${t.label}</option>`).join('');
+  document.getElementById('tablero-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head"><span class="card-title">🔌 Tablero ${nTablero}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="fgrid">
+        <div class="fg"><label>Polos</label><select class="tab-sel" onchange="tableroChange(this)">${opts}</select></div>
+        <div class="fg span2"><label>Descripción</label><input type="text" class="tab-desc" placeholder="Ej. Tablero principal planta baja" value="${desc||''}" oninput="saveState()"></div>
+        <div class="fg"><label>Cantidad</label><input type="number" class="tab-cant" placeholder="1" min="1" step="1" value="${cant||'1'}" oninput="calcAllD()"></div>
+        <div class="fg"><label>Precio unitario (Q)</label><input type="number" class="tab-precio" placeholder="0.00" min="0" step="0.01" value="${precio||''}" oninput="calcAllD()"></div>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" class="tab-mo" ${mo?'checked':''} onchange="calcAll()"> Incluye mano de obra
+        </label>
+        <input type="number" class="tab-mo-precio" placeholder="0.00" min="0" step="0.01" style="width:90px;font-size:12px;background:var(--bg3);border:1px solid var(--div);border-radius:4px;padding:4px 6px;color:var(--ink);" value="${moPrecio||''}" oninput="calcAllD()">
+        <span style="font-size:10px;color:var(--ink-mid);">Q/ud instalación</span>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--ink-mid);">
+        Subtotal: <span id="tab-sub-${nTablero}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
+        <span style="margin-left:8px;font-size:10px;background:rgba(139,112,64,0.12);color:var(--gold2);padding:2px 7px;border-radius:10px;">Precio ref. CELASA 2026</span>
+      </div>
+    </div>`);
+  if (!precio && selKey) {
+    const el = document.getElementById(id);
+    if (el && PRICE_DEFS[selKey]) el.querySelector('.tab-precio').value = PRICE_DEFS[selKey].val;
+  } else if (!precio) {
+    const el = document.getElementById(id);
+    if (el) el.querySelector('.tab-precio').value = PRICE_DEFS['panel12']?.val || '';
+  }
   calcAll();
 }
 
@@ -2565,6 +2637,23 @@ function _calcAllReal() {
       ` &nbsp;·&nbsp; Subtotal: <span style="color:var(--gold);font-weight:700;">Q ${sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;
   });
 
+  // TABLERO ELÉCTRICO
+  let costoTablero = 0;
+  (document.getElementById('tablero-list')?.querySelectorAll('.card')||[]).forEach(card => {
+    const n        = card.id.replace('tablero-','');
+    const cant     = +(card.querySelector('.tab-cant')?.value)||0;
+    const precio   = +(card.querySelector('.tab-precio')?.value)||0;
+    const inclMo   = card.querySelector('.tab-mo')?.checked||false;
+    const moPrecio = +(card.querySelector('.tab-mo-precio')?.value)||0;
+    const sub      = cant * precio + (inclMo ? cant * moPrecio : 0);
+    costoTablero  += sub;
+    const el = document.getElementById('tab-sub-'+n);
+    if (el) el.textContent = 'Q '+sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+  elecCosto += costoTablero;
+  const tableroEl = document.getElementById('s-tablero-costo');
+  if (tableroEl) tableroEl.textContent = 'Q '+costoTablero.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+
   set('s-elec-pts', elecPts); set('s-elec-cond', elecCond);
   set('s-elec-w12', elecW12); set('s-elec-w10', elecW10); set('s-elec-caja', elecCajas);
   const elecEl = document.getElementById('s-elec-costo');
@@ -3018,6 +3107,15 @@ function saveState() {
       metros: c.querySelector('.thdr-m')?.value||'',
       tipKey: c.querySelector('.thdr-tipo')?.value||'pvc_a12'
     }));
+    p.tableros = [];
+    (document.getElementById('tablero-list')?.querySelectorAll('.card')||[]).forEach(c => p.tableros.push({
+      desc:     c.querySelector('.tab-desc')?.value||'',
+      cant:     c.querySelector('.tab-cant')?.value||'1',
+      precio:   c.querySelector('.tab-precio')?.value||'',
+      selKey:   c.querySelector('.tab-sel')?.value||'panel12',
+      mo:       c.querySelector('.tab-mo')?.checked||false,
+      moPrecio: c.querySelector('.tab-mo-precio')?.value||''
+    }));
 
     p.jard = [];
     document.querySelectorAll('#jard-list > .card').forEach(c => p.jard.push({
@@ -3147,8 +3245,15 @@ const PRICE_DEFS = {
   caja_r:    { cat:'⚡ Eléctrica',   label:'Caja rectangular',        unit:'ud',          val:8.39  },
   apagador:  { cat:'⚡ Eléctrica',   label:'Apagador sencillo',       unit:'ud',          val:26.18 },
   tomacorr:  { cat:'⚡ Eléctrica',   label:'Tomacorriente doble',     unit:'ud',          val:29.30 },
-  panel4:    { cat:'⚡ Eléctrica',   label:'Panel 4 circuitos',       unit:'ud',          val:297.61},
-  breaker15: { cat:'⚡ Eléctrica',   label:'Breaker 15A',             unit:'ud',          val:47.04 },
+  panel4:    { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 4 polos 125A',  unit:'ud', val:339.02  },
+  panel6:    { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 6 polos 125A',  unit:'ud', val:455.88  },
+  panel8:    { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 8 polos 125A',  unit:'ud', val:466.99  },
+  panel12:   { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 12 polos 125A', unit:'ud', val:816.53  },
+  panel16:   { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 16 polos 125A', unit:'ud', val:1307.92 },
+  panel24:   { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 24 polos 125A', unit:'ud', val:1309.53 },
+  panel32:   { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 32 polos 200A', unit:'ud', val:1887.32 },
+  panel42:   { cat:'⚡ Eléctrica',   label:'Tablero eléctrico 42 polos 225A', unit:'ud', val:2767.98 },
+  breaker15: { cat:'⚡ Eléctrica',   label:'Breaker 15A',                     unit:'ud', val:47.04   },
   breaker20: { cat:'⚡ Eléctrica',   label:'Breaker 20A',             unit:'ud',          val:57.53 },
   // Puertas y Ventanas
   p_solida:  { cat:'🚪 Puertas y Ventanas', label:'Puerta sólida 0.90×2.10m',   unit:'ud', val:888.73},
