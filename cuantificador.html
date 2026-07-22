@@ -1329,6 +1329,7 @@ function abrirProyecto(id) {
     card.querySelector('.hidr-l').value       = h.l    || '';
     card.querySelector('.hidr-acc').value     = h.acc  || '';
     if (h.mo) card.querySelector('.hidr-mo').checked = true;
+    if (h.moPrecio) card.querySelector('.hidr-mo-precio').value = h.moPrecio;
   });
   (proj.hidrArt || []).forEach(a => addHidrArt(a.desc, a.cant, a.precio));
   (proj.equipoEsp || []).forEach(e => {
@@ -1813,11 +1814,12 @@ function addHidraulico() {
         </div>
         <div class="fg"><label>Longitud (m)</label><input type="number" class="hidr-l" placeholder="0.00" min="0" step="0.5" oninput="calcAllD()"></div>
         <div class="fg"><label>Accesorios (codos/tees)</label><input type="number" class="hidr-acc" placeholder="0" min="0" step="1" oninput="calcAllD()"></div>
-        <div class="fg span2" style="display:flex;align-items:center;gap:10px;padding-top:4px;">
+        <div class="fg span2" style="display:flex;align-items:center;gap:12px;padding-top:4px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;">
             <input type="checkbox" class="hidr-mo" onchange="calcAll()"> Incluye mano de obra
           </label>
-          <span id="hidr-mo-lbl-${nHidr}" style="font-size:11px;color:var(--gold2);"></span>
+          <span style="font-size:11px;color:var(--ink-mid);">M.O./punto (Q):</span>
+          <input type="number" class="hidr-mo-precio" placeholder="0.00" min="0" step="0.01" style="width:90px;font-size:12px;" oninput="calcAllD()">
         </div>
       </div>
       <div style="margin-top:10px;font-size:12px;color:var(--ink-mid);">
@@ -1873,9 +1875,7 @@ function equipoEspChange(sel) {
   if (key && PRICE_DEFS[key]) {
     card.querySelector('.eesp-precio').value = PRICE_DEFS[key].val;
     card.querySelector('.eesp-desc').value   = card.querySelector('.eesp-desc').value || PRICE_DEFS[key].label;
-    const moKey = _moJacMap[key];
-    const moPrecEl = card.querySelector('.eesp-mo-precio');
-    if (moPrecEl) moPrecEl.value = moKey ? getPrecio(moKey) : '';
+    // MO precio editable por el usuario — no se auto-rellena
   }
   calcAll();
 }
@@ -2430,29 +2430,26 @@ function _calcAllReal() {
   // HIDRÁULICA
   const hidrTubs = {a12:0, a34:0, a1:0, d2:0, d3:0, d4:0};
   let hidrAcc=0, hidrCosto=0, moHidr=0;
-  const hidrKey   = { a12:'pvc_a12', a34:'pvc_a34', a1:'pvc_a1', d2:'pvc_d2', d3:'pvc_d3', d4:'pvc_d4' };
-  const hidrMoKey = { a12:'mo_hidr_12', a34:'mo_hidr_34', a1:'mo_hidr_1', d2:'mo_hidr_2', d3:'mo_hidr', d4:'mo_hidr' };
+  const hidrKey = { a12:'pvc_a12', a34:'pvc_a34', a1:'pvc_a1', d2:'pvc_d2', d3:'pvc_d3', d4:'pvc_d4' };
   document.querySelectorAll('#hidraulica-list > .card').forEach(card => {
-    const n      = card.id.replace('hidr-','');
-    const diam   = card.querySelector('.hidr-diam')?.value || 'a12';
-    const lng    = +(card.querySelector('.hidr-l')?.value)   || 0;
-    const acc    = +(card.querySelector('.hidr-acc')?.value) || 0;
-    const inclMo = card.querySelector('.hidr-mo')?.checked || false;
-    const tubs   = Math.ceil(lng / 6 * 1.10);
-    const accEst = Math.ceil(lng / 4) + acc;
-    const pts    = Math.ceil(lng / 5);
-    const moPrecio = getPrecio(hidrMoKey[diam]);
+    const n        = card.id.replace('hidr-','');
+    const diam     = card.querySelector('.hidr-diam')?.value || 'a12';
+    const lng      = +(card.querySelector('.hidr-l')?.value)   || 0;
+    const acc      = +(card.querySelector('.hidr-acc')?.value) || 0;
+    const inclMo   = card.querySelector('.hidr-mo')?.checked || false;
+    const moPrecio = +(card.querySelector('.hidr-mo-precio')?.value) || 0;
+    const tubs     = Math.ceil(lng / 6 * 1.10);
+    const accEst   = Math.ceil(lng / 4) + acc;
+    const pts      = Math.ceil(lng / 5);
     const thisMoHidr = inclMo ? pts * moPrecio : 0;
     const sub = tubs * getPrecio(hidrKey[diam])
               + accEst * getPrecio('codo12')
               + thisMoHidr;
     hidrTubs[diam] += tubs; hidrAcc += accEst; hidrCosto += sub; moHidr += thisMoHidr;
-    const tubEl   = document.getElementById('hidr-tub-'+n);
-    const subEl   = document.getElementById('hidr-sub-'+n);
-    const moLblEl = document.getElementById('hidr-mo-lbl-'+n);
-    if (tubEl)   tubEl.textContent = tubs;
-    if (subEl)   subEl.textContent = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
-    if (moLblEl) moLblEl.textContent = inclMo ? `M.O.: ${pts} pto × Q${moPrecio.toLocaleString('es-GT',{minimumFractionDigits:2})} = Q${thisMoHidr.toLocaleString('es-GT',{minimumFractionDigits:2})}` : '';
+    const tubEl = document.getElementById('hidr-tub-'+n);
+    const subEl = document.getElementById('hidr-sub-'+n);
+    if (tubEl) tubEl.textContent = tubs;
+    if (subEl) subEl.textContent = sub.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
   });
   set('s-hidr-a12', hidrTubs.a12); set('s-hidr-a34', hidrTubs.a34); set('s-hidr-a1', hidrTubs.a1);
   set('s-hidr-d2',  hidrTubs.d2);  set('s-hidr-d3',  hidrTubs.d3);  set('s-hidr-d4', hidrTubs.d4);
@@ -2823,7 +2820,8 @@ function saveState() {
     document.querySelectorAll('#hidraulica-list > .card').forEach(c => p.hidr.push({
       desc: c.querySelector('.hidr-desc')?.value||'', diam: c.querySelector('.hidr-diam')?.value||'a12',
       l:    c.querySelector('.hidr-l')?.value||'',    acc:  c.querySelector('.hidr-acc')?.value||'',
-      mo:   c.querySelector('.hidr-mo')?.checked||false
+      mo:   c.querySelector('.hidr-mo')?.checked||false,
+      moPrecio: c.querySelector('.hidr-mo-precio')?.value||''
     }));
     p.hidrArt = [];
     document.querySelectorAll('#hidr-art-list > .card').forEach(c => p.hidrArt.push({
