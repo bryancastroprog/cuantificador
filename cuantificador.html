@@ -1688,6 +1688,7 @@ function addViga() {
         &nbsp;·&nbsp; Subtotal:
         <span id="vig-sub-${nVig}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
       </div>
+      <div id="vig-det-${nVig}" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(107,80,48,0.06);border-radius:6px;font-size:11px;color:var(--ink-mid);flex-wrap:wrap;gap:6px 18px;"></div>
     </div>`);
   calcAll();
 }
@@ -1778,6 +1779,7 @@ function addLosa() {
         &nbsp;·&nbsp; Subtotal:
         <span id="losa-sub-${n}" style="color:var(--gold);font-weight:700;">Q 0.00</span>
       </div>
+      <div id="losa-det-${n}" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(107,80,48,0.06);border-radius:6px;font-size:11px;color:var(--ink-mid);flex-wrap:wrap;gap:6px 18px;"></div>
     </div>`);
   const card = document.getElementById(id);
   if (card) {
@@ -2671,7 +2673,7 @@ function _calcAllReal() {
     }
   });
 
-  // VIGAS
+  // VIGAS — concreto estructural 5000 PSI
   let volVig=0, mH4vig=0, mH2vig=0;
   (document.getElementById('vigas-list')?.querySelectorAll('.card')||[]).forEach(c => {
     const n=c.id.replace('vig-','');
@@ -2682,11 +2684,26 @@ function _calcAllReal() {
     const h4i=4*lng*1.10*cant, h2i=Math.ceil(lng/0.15)*(2*(b+hh)+0.10)*cant;
     const v4i=Math.ceil(h4i/6), v2i=Math.ceil(h2i/6);
     const alI=Math.max(1,Math.ceil((v4i+v2i)/50));
-    const subI=volI*_cM3 + v4i*_pH4 + v2i*_pH2 + alI*_pAl;
+    const areaFormV = (b + 2*hh)*lng*cant;           // fondo + 2 caras laterales
+    const costFormV  = areaFormV * getPrecio('mo_form_vig');
+    const subI=volI*_cM3_col + v4i*_pH4 + v2i*_pH2 + alI*_pAl + costFormV;
     volVig+=volI; mH4vig+=h4i; mH2vig+=h2i;
+    const sacVig = Math.ceil(volI * 10 * 1.05);
+    const areVig = (volI * 0.40 * 1.05).toFixed(2);
+    const pieVig = (volI * 0.75 * 1.05).toFixed(2);
+    const moVig  = volI * getPrecio('mo_conc');
     const eV=document.getElementById('vig-vol-'+n), eS=document.getElementById('vig-sub-'+n);
     if(eV) eV.textContent=volI.toFixed(3)+' m³';
     if(eS) eS.textContent=_fmtS(subI);
+    const eDet=document.getElementById('vig-det-'+n);
+    if (eDet) {
+      if (volI > 0) {
+        eDet.style.display='flex';
+        eDet.innerHTML=`<span>🔧 <b>Varilla #4:</b> ${v4i} var. 6m</span><span>🔩 <b>Estrib. #2:</b> ${v2i} var.</span><span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento 5000psi:</b> ${sacVig} sacos</span><span>🏖️ <b>Arena:</b> ${areVig} m³</span><span>🪨 <b>Piedrín ½":</b> ${pieVig} m³</span><span>👷 <b>M.O. concreto:</b> ${_fmtS(moVig)}</span><span>🪵 <b>Formaleta:</b> ${areaFormV.toFixed(2)} m² → ${_fmtS(costFormV)}</span>`;
+      } else {
+        eDet.style.display='none';
+      }
+    }
   });
 
   // CIMIENTOS
@@ -2719,7 +2736,7 @@ function _calcAllReal() {
       if (volI > 0) {
         const v2row = tipo==='corrido' ? `<span>🔩 <b>Estrib. #2:</b> ${v2i} var.</span>` : '';
         eDet.style.display = 'flex';
-        eDet.innerHTML = `<span>🔧 <b>Varilla #4:</b> ${v4i} var. 6m</span>${v2row}<span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento:</b> ${sacCim} sacos</span><span>🏖️ <b>Arena:</b> ${areCim} m³</span><span>🪨 <b>Piedrín:</b> ${pieCim} m³</span><span>👷 <b>M.O.:</b> ${_fmtS(moCim)}</span>`;
+        eDet.innerHTML = `<span>🔧 <b>Varilla #4:</b> ${v4i} var. 6m</span>${v2row}<span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento 3000psi:</b> ${sacCim} sacos</span><span>🏖️ <b>Arena:</b> ${areCim} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieCim} m³</span><span>👷 <b>M.O.:</b> ${_fmtS(moCim)}</span>`;
       } else {
         eDet.style.display = 'none';
       }
@@ -2754,10 +2771,29 @@ function _calcAllReal() {
     volLosa+=volI; mH3losa+=h3i;
     const v3i=Math.ceil(h3i/6);
     const alI=Math.max(1,Math.ceil(v3i/50));
-    const subI=volI*_cM3 + v3i*_pH3 + alI*_pAl + vigBovExtra;
+    const areaFormL = areaI * 1.05;                  // sofito con 5% solapas
+    const costFormL  = areaFormL * getPrecio('mo_form_losa');
+    const subI=volI*_cM3 + v3i*_pH3 + alI*_pAl + vigBovExtra + costFormL;
+    const sacLosa = Math.ceil(volI * 7 * 1.05);
+    const areLosa = (volI * 0.5 * 1.05).toFixed(2);
+    const pieLosa = (volI * 1.0 * 1.05).toFixed(2);
+    const moLosa  = volI * getPrecio('mo_conc');
     const eA=document.getElementById('losa-area-'+n), eS=document.getElementById('losa-sub-'+n);
     if(eA) eA.textContent=areaI.toFixed(2)+' m²';
     if(eS) eS.textContent=_fmtS(subI);
+    const eDet=document.getElementById('losa-det-'+n);
+    if (eDet) {
+      if (areaI > 0) {
+        eDet.style.display='flex';
+        if (tipo==='maciza') {
+          eDet.innerHTML=`<span>🔧 <b>Hierro #3:</b> ${v3i} var. 6m</span><span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento 3500psi:</b> ${sacLosa} sacos</span><span>🏖️ <b>Arena:</b> ${areLosa} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieLosa} m³</span><span>👷 <b>M.O. concreto:</b> ${_fmtS(moLosa)}</span><span>🪵 <b>Formaleta sofito:</b> ${areaFormL.toFixed(2)} m² → ${_fmtS(costFormL)}</span>`;
+        } else {
+          eDet.innerHTML=`<span>🧱 <b>Cemento capa:</b> ${sacLosa} sacos</span><span>🏖️ <b>Arena:</b> ${areLosa} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieLosa} m³</span><span>👷 <b>M.O. concreto capa:</b> ${_fmtS(moLosa)}</span><span>🪵 <b>Formaleta sofito:</b> ${areaFormL.toFixed(2)} m² → ${_fmtS(costFormL)}</span>`;
+        }
+      } else {
+        eDet.style.display='none';
+      }
+    }
   });
 
   // CONCRETO
@@ -3608,7 +3644,9 @@ const PRICE_DEFS = {
   mo_tabique:{ cat:'👷 Mano de Obra', label:'Tabique / drywall',      unit:'m²',    val:57.53 },
   mo_cielo:  { cat:'👷 Mano de Obra', label:'Cielo falso',            unit:'m²',    val:68.01 },
   mo_conc:   { cat:'👷 Mano de Obra', label:'Concreto armado',        unit:'m³',    val:439.76},
-  mo_form_col:{ cat:'👷 Mano de Obra', label:'Formaleta columnas (mat+MO)', unit:'m²', val:120.00},
+  mo_form_col: { cat:'👷 Mano de Obra', label:'Formaleta columnas (mat+MO)',    unit:'m²', val:120.00},
+  mo_form_vig: { cat:'👷 Mano de Obra', label:'Formaleta vigas (mat+MO)',       unit:'m²', val:110.00},
+  mo_form_losa:{ cat:'👷 Mano de Obra', label:'Formaleta losa sofito (mat+MO)', unit:'m²', val:180.00},
   vigueta_ml:  { cat:'🏗️ Concreto', label:'Vigueta pretensada T-12', unit:'ml',    val:38.00  },
   bovedilla_ud:{ cat:'🏗️ Concreto', label:'Bovedilla 25×25cm',       unit:'ud',    val:15.00  },
   mo_vig_bov:  { cat:'👷 Mano de Obra', label:'Tendido vigueta y bovedilla', unit:'m²', val:45.00 },
