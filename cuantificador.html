@@ -598,8 +598,8 @@
 
         <div class="subsec" style="margin-top:28px;">
           <div>
-            <div class="subsec-title">Equipos Especiales</div>
-            <div class="subsec-hint">Jacuzzi, bombas, calentadores, equipos de spa · Precio directo de proveedor · Admin + Util + IVA únicamente</div>
+            <div class="subsec-title">Equipo Especial Jacuzzi</div>
+            <div class="subsec-hint">Bombas, calentadores, filtros, paneles, jets y accesorios de spa · Precio directo de proveedor · Admin + Util + IVA únicamente</div>
           </div>
           <button class="btn btn-outline" onclick="addEquipoEsp()">+ Agregar Equipo</button>
         </div>
@@ -934,7 +934,7 @@
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Herrería (fijo)</span><span class="sum-val" id="s-cd-herr" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos eléct.</span><span class="sum-val" id="s-cd-elec-art" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Artefactos sanit.</span><span class="sum-val" id="s-cd-hidr-art" style="font-size:12px;">Q 0.00</span></div>
-        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Equipos especiales</span><span class="sum-val" id="s-cd-equip-esp" style="font-size:12px;">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Equipo jacuzzi</span><span class="sum-val" id="s-cd-equip-esp" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Jardinización</span><span class="sum-val" id="s-cd-jard" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Personal/Consult.</span><span class="sum-val" id="s-cd-consult" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-row" style="border-top:1px dashed var(--div);padding-top:5px;margin-top:3px;">
@@ -1864,7 +1864,7 @@ function addEquipoEsp(desc, cant, precio, selKey) {
   const id = 'eesp-' + nEquipoEsp;
   document.getElementById('equip-esp-list').insertAdjacentHTML('beforeend', `
     <div class="card" id="${id}">
-      <div class="card-head"><span class="card-title">⚙️ Equipo ${nEquipoEsp}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
+      <div class="card-head"><span class="card-title">🛁 Equipo Jacuzzi ${nEquipoEsp}</span><button class="btn-rm" onclick="removeEl('${id}')">×</button></div>
       <div class="fgrid">
         <div class="fg span2">
           <label>Tipo de equipo</label>
