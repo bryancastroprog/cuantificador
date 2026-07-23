@@ -1319,7 +1319,10 @@ function abrirProyecto(id) {
     card.querySelector('.losa-l').value            = l.l       || '';
     card.querySelector('.losa-a').value            = l.a       || '';
     card.querySelector('.losa-e').value            = l.e       || '0.05';
-    if (l.areaDir) card.querySelector('.losa-area-dir').value = l.areaDir;
+    if (l.areaDir)  card.querySelector('.losa-area-dir').value   = l.areaDir;
+    if (l.refTipo)  card.querySelector('.losa-ref-tipo').value   = l.refTipo;
+    if (l.refSep)   card.querySelector('.losa-ref-sep').value    = l.refSep;
+    if (l.refTipo?.startsWith('malla')) losaRefChange(card.querySelector('.losa-ref-tipo'), nLosa);
     if (l.tipo === 'vigueta') {
       const extra = document.getElementById('vig-extra-'+nLosa);
       if (extra) extra.style.display = 'block';
@@ -1739,8 +1742,17 @@ function toggleCim(n) {
 //  LOSAS
 // ═══════════════════════════════════════════
 function losaTypeChange(sel, n) {
+  const isMac = sel.value === 'maciza';
   const extra = document.getElementById('vig-extra-'+n);
-  if (extra) extra.style.display = sel.value === 'vigueta' ? 'block' : 'none';
+  const ref   = document.getElementById('losa-ref-'+n);
+  if (extra) extra.style.display = isMac ? 'none' : 'block';
+  if (ref)   ref.style.display   = isMac ? 'block' : 'none';
+  calcAll();
+}
+function losaRefChange(sel, n) {
+  const isMalla = sel.value.startsWith('malla');
+  const sepG = document.getElementById('losa-ref-sep-g-'+n);
+  if (sepG) sepG.style.display = isMalla ? 'none' : '';
   calcAll();
 }
 function addLosa() {
@@ -1766,6 +1778,25 @@ function addLosa() {
             <option value="0.10">10 cm</option>
           </select>
         </div>
+      </div>
+      <div id="losa-ref-${n}" style="margin-top:10px;background:rgba(0,0,0,0.03);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Acero a Flexión</div>
+        <div class="fgrid">
+          <div class="fg"><label>Tipo de refuerzo</label>
+            <select class="losa-ref-tipo" onchange="losaRefChange(this,${n})">
+              <option value="malla6">Electromalla cal. 6</option>
+              <option value="malla8">Electromalla cal. 8</option>
+              <option value="malla10">Electromalla cal. 10</option>
+              <option value="h2">Varilla #2</option>
+              <option value="h3" selected>Varilla #3</option>
+              <option value="h4">Varilla #4</option>
+            </select>
+          </div>
+          <div class="fg" id="losa-ref-sep-g-${n}"><label>Separación (cm)</label>
+            <input type="number" class="losa-ref-sep" value="20" min="10" max="30" step="5" oninput="calcAllD()">
+          </div>
+        </div>
+        <div id="losa-ref-det-${n}" style="margin-top:6px;font-size:11px;color:var(--ink-mid);"></div>
       </div>
       <div id="vig-extra-${n}" style="display:none;margin-top:10px;background:rgba(0,0,0,0.03);border-radius:8px;padding:10px 12px;">
         <div style="font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Datos Vigueta + Bovedilla</div>
@@ -2778,9 +2809,29 @@ function _calcAllReal() {
     const areaDir=+(c.querySelector('.losa-area-dir')?.value)||0;
     const areaI = areaDir > 0 ? areaDir : l*a;
     areaLosas+=areaI;
-    let volI=0, h3i=0, vigBovExtra=0;
-    if (tipo==='maciza') { volI=areaI*e; h3i=areaI*13.33*1.15; }
-    else {
+    let volI=0, h3i=0, vigBovExtra=0, steelCost=0, macRefHTML='';
+    if (tipo==='maciza') {
+      volI = areaI * e;
+      const refTipo = c.querySelector('.losa-ref-tipo')?.value || 'h3';
+      if (refTipo.startsWith('malla')) {
+        const cal = refTipo.replace('malla','');
+        const mallaM2 = +(areaI * 1.10).toFixed(2);
+        const mallaCost = mallaM2 * getPrecio('electromalla_'+cal);
+        steelCost = mallaCost;
+        macRefHTML = `<span>🕸️ <b>Electromalla cal.${cal}:</b> ${mallaM2} m² (c/10% solapas) → ${_fmtS(mallaCost)}</span>`;
+      } else {
+        const hierroNum = refTipo.replace('h','');
+        const sep = +(c.querySelector('.losa-ref-sep')?.value)||20;
+        const mlT = areaI * (100/sep) * 2 * 1.15;
+        const vT  = Math.ceil(mlT/6);
+        const alT = Math.max(1, Math.ceil(vT/50));
+        steelCost = vT*getPrecio('hierro'+hierroNum) + alT*_pAl;
+        if (refTipo==='h3') h3i = mlT;
+        macRefHTML = `<span>🔧 <b>Varilla #${hierroNum}:</b> ${vT} var. 6m (sep. ${sep}cm, 2 dir.)</span><span>🪢 <b>Alambre:</b> ${alT} rollo${alT!==1?'s':''}</span>`;
+      }
+      const rd = document.getElementById('losa-ref-det-'+n);
+      if (rd) rd.innerHTML = macRefHTML;
+    } else {
       volI=areaI*e; h3i=areaI*(1/0.25)*1.10;
       const sep       = +(c.querySelector('.vig-sep')?.value)||0.60;
       const vigPrecMl = +(c.querySelector('.vig-precio-ml')?.value)||getPrecio('vigueta_ml');
@@ -2796,11 +2847,13 @@ function _calcAllReal() {
       if (det) det.innerHTML = `Viguetas: <b>${nVig} ud × ${l}m = ${mlVig} ml</b> &nbsp;·&nbsp; Bovedillas: <b>${nBov} ud</b> &nbsp;·&nbsp; MO: <b>${areaI.toFixed(2)} m²</b>`;
     }
     volLosa+=volI; mH3losa+=h3i;
-    const v3i=Math.ceil(h3i/6);
-    const alI=Math.max(1,Math.ceil(v3i/50));
-    const areaFormL = areaI * 1.05;                  // sofito con 5% solapas
+    const v3i = tipo==='maciza' ? 0 : Math.ceil(h3i/6);
+    const alI = tipo==='maciza' ? 0 : Math.max(1,Math.ceil(v3i/50));
+    const areaFormL = areaI * 1.05;
     const costFormL  = areaFormL * getPrecio('mo_form_losa');
-    const subI=volI*_cM3 + v3i*_pH3 + alI*_pAl + vigBovExtra + costFormL;
+    const subI = tipo==='maciza'
+      ? volI*_cM3 + steelCost + costFormL
+      : volI*_cM3 + v3i*_pH3 + alI*_pAl + vigBovExtra + costFormL;
     const sacLosa = Math.ceil(volI * 7 * 1.05);
     const areLosa = (volI * 0.5 * 1.05).toFixed(2);
     const pieLosa = (volI * 1.0 * 1.05).toFixed(2);
@@ -2813,7 +2866,7 @@ function _calcAllReal() {
       if (areaI > 0) {
         eDet.style.display='flex';
         if (tipo==='maciza') {
-          eDet.innerHTML=`<span>🔧 <b>Hierro #3:</b> ${v3i} var. 6m</span><span>🪢 <b>Alambre:</b> ${alI} rollo${alI!==1?'s':''}</span><span>🧱 <b>Cemento 3500psi:</b> ${sacLosa} sacos</span><span>🏖️ <b>Arena:</b> ${areLosa} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieLosa} m³</span><span>👷 <b>M.O. concreto:</b> ${_fmtS(moLosa)}</span><span>🪵 <b>Formaleta sofito:</b> ${areaFormL.toFixed(2)} m² → ${_fmtS(costFormL)}</span>`;
+          eDet.innerHTML=`${macRefHTML}<span>🧱 <b>Cemento 3500psi:</b> ${sacLosa} sacos</span><span>🏖️ <b>Arena:</b> ${areLosa} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieLosa} m³</span><span>👷 <b>M.O. concreto:</b> ${_fmtS(moLosa)}</span><span>🪵 <b>Formaleta sofito:</b> ${areaFormL.toFixed(2)} m² → ${_fmtS(costFormL)}</span>`;
         } else {
           eDet.innerHTML=`<span>🧱 <b>Cemento capa:</b> ${sacLosa} sacos</span><span>🏖️ <b>Arena:</b> ${areLosa} m³</span><span>🪨 <b>Piedrín ¾":</b> ${pieLosa} m³</span><span>👷 <b>M.O. concreto capa:</b> ${_fmtS(moLosa)}</span><span>🪵 <b>Formaleta sofito:</b> ${areaFormL.toFixed(2)} m² → ${_fmtS(costFormL)}</span>`;
         }
@@ -3377,6 +3430,8 @@ function saveState() {
       l: c.querySelector('.losa-l')?.value||'', a: c.querySelector('.losa-a')?.value||'',
       areaDir: c.querySelector('.losa-area-dir')?.value||'',
       e: c.querySelector('.losa-e')?.value||'0.05',
+      refTipo: c.querySelector('.losa-ref-tipo')?.value||'h3',
+      refSep:  c.querySelector('.losa-ref-sep')?.value||'20',
       vigSep:  c.querySelector('.vig-sep')?.value||'0.60',
       vigMl:   c.querySelector('.vig-precio-ml')?.value||'',
       vigBov:  c.querySelector('.vig-precio-bov')?.value||'',
@@ -3585,7 +3640,10 @@ const PRICE_DEFS = {
   hierro5:   { cat:'⚙️ Hierro',      label:'Hierro #5 (⅝")',           unit:'varilla 6m',  val:136.02},
   hierro6:   { cat:'⚙️ Hierro',      label:'Hierro #6 (¾")',           unit:'varilla 6m',  val:193.29},
   malla:     { cat:'⚙️ Hierro',      label:'Malla electrosoldada 6×6"',unit:'lámina',      val:292.49},
-  alambre:   { cat:'⚙️ Hierro',      label:'Alambre de amarre',        unit:'rollo',       val:50.11 },
+  alambre:       { cat:'⚙️ Hierro', label:'Alambre de amarre',             unit:'rollo', val:50.11 },
+  electromalla_6: { cat:'⚙️ Hierro', label:'Electromalla cal. 6 (6×6 W1.4)', unit:'m²',    val:21.53 },
+  electromalla_8: { cat:'⚙️ Hierro', label:'Electromalla cal. 8 (6×6 W0.9)', unit:'m²',    val:13.89 },
+  electromalla_10:{ cat:'⚙️ Hierro', label:'Electromalla cal. 10 (6×6 W0.6)',unit:'m²',    val: 9.38 },
   clavo2:    { cat:'⚙️ Hierro',      label:'Clavo 2"',                 unit:'libra',       val:8.39  },
   clavo3:    { cat:'⚙️ Hierro',      label:'Clavo 3"',                 unit:'libra',       val:8.39  },
   clavo4:    { cat:'⚙️ Hierro',      label:'Clavo 4"',                 unit:'libra',       val:8.90  },
