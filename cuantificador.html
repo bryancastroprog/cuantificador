@@ -755,6 +755,22 @@
 
         <div style="margin-bottom:20px;">
           <div class="subsec">
+            <div><div class="subsec-title">Repello Cementicio / Estuco Cementicio</div><div class="subsec-hint">Repello 2cm 1:3 · 0.18 sac/m² · 0.030 m³ arena · MO Q40/m² &nbsp;|&nbsp; Estuco 5mm 1:2 · 0.10 sac/m² · 0.010 m³ arena · MO Q28/m²</div></div>
+            <button class="btn btn-outline" onclick="addRepEst()">+ Agregar Elemento</button>
+          </div>
+          <div id="rep-est-list"></div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div class="subsec">
+            <div><div class="subsec-title">Sellador Hidráulico</div><div class="subsec-hint">Transparente para muros · Blanco para losas/techos · Precio de cubeta 19L en Precios</div></div>
+            <button class="btn btn-outline" onclick="addSellador()">+ Agregar Elemento</button>
+          </div>
+          <div id="sell-list"></div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div class="subsec">
             <div><div class="subsec-title">Cerámica de Piso</div><div class="subsec-hint">+10% desperdicio · Adhesivo 1 saco/4m² · Jalafor 1 kg/3m²</div></div>
             <button class="btn btn-outline" onclick="addCerPiso()">+ Agregar Área</button>
           </div>
@@ -915,6 +931,8 @@
         <div class="sum-row"><span class="sum-name">Cemento repello</span><span><span id="s-cem-rep" class="sum-val zero">0</span><span class="sum-unit">sacos</span></span></div>
         <div class="sum-row"><span class="sum-name">Arena repello</span><span><span id="s-are-rep" class="sum-val zero">0.00</span><span class="sum-unit">m³</span></span></div>
         <div class="sum-row"><span class="sum-name">Pintura</span><span><span id="s-pintura" class="sum-val zero">0</span><span class="sum-unit">galones</span></span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Repello / Estuco cem.</span><span class="sum-val" id="s-rep-est" style="font-size:12px;">Q 0.00</span></div>
+        <div class="sum-row"><span class="sum-name" style="font-style:italic;font-size:11px;">+ Sellador hidráulico</span><span class="sum-val" id="s-sell" style="font-size:12px;">Q 0.00</span></div>
         <div class="sum-total-box" style="margin-top:6px;">
           <div class="sum-row"><span class="sum-name">TOTAL ACABADOS</span><span class="sum-val" id="s-acab-costo">Q 0.00</span></div>
         </div>
@@ -1222,8 +1240,8 @@ function abrirProyecto(id) {
    'carpinteria-list','herreria-list'].forEach(lid => {
     document.getElementById(lid).innerHTML = '';
   });
-  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nVent=0; nPuerta=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0; nTablero=0;
-  ['elec-art-list','elec-cab-list','tablero-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','puertas-list','ventanas-list','jard-list','areas-list','consult-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
+  nPrelim=0; nPared=0; nVano={}; nCol=0; nVig=0; nCim=0; nLosa=0; nCP=0; nCPar=0; nElec=0; nHidr=0; nCarp=0; nHerr=0; nVent=0; nPuerta=0; nPago=0; nElecArt=0; nHidrArt=0; nJard=0; nArea=0; nConsult=0; nCajReg=0; nEquipoEsp=0; nElecCab=0; nTuboHidr=0; nTablero=0; nRepEst=0; nSell=0;
+  ['elec-art-list','elec-cab-list','tablero-list','hidr-art-list','cajreg-list','equip-esp-list','tubo-hidr-list','puertas-list','ventanas-list','jard-list','areas-list','consult-list','rep-est-list','sell-list'].forEach(lid => { const el=document.getElementById(lid); if(el) el.innerHTML=''; });
 
   // Info proyecto
   document.getElementById('p-nombre').value  = proj.nombre  || '';
@@ -1469,6 +1487,12 @@ function abrirProyecto(id) {
   // Áreas
   (proj.areas || []).forEach(a => addArea(a.nombre, a.m2, a.nota));
 
+  // Repello / Estuco Cementicio
+  (proj.repEst || []).forEach(r => addRepEst(r.desc, r.tipo, r.area));
+
+  // Sellador Hidráulico
+  (proj.sell || []).forEach(s => addSellador(s.desc, s.tipo, s.area));
+
   // Acabados
   const ac = proj.acabados || {};
   document.getElementById('repello-extra').value  = ac.repelloExtra || '';
@@ -1507,7 +1531,7 @@ function showTab(id, btn) {
 // ═══════════════════════════════════════════
 //  CONTADORES
 // ═══════════════════════════════════════════
-let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nVent=0, nPuerta=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0, nTablero=0;
+let nPrelim=0, nPared=0, nVano={}, nCol=0, nVig=0, nCim=0, nLosa=0, nCP=0, nCPar=0, nElec=0, nHidr=0, nCarp=0, nHerr=0, nVent=0, nPuerta=0, nPago=0, nElecArt=0, nHidrArt=0, nJard=0, nArea=0, nConsult=0, nCajReg=0, nEquipoEsp=0, nElecCab=0, nTuboHidr=0, nTablero=0, nRepEst=0, nSell=0;
 
 // ═══════════════════════════════════════════
 //  PRELIMINARES
@@ -1821,6 +1845,76 @@ function addLosa() {
     card.querySelector('.vig-precio-bov').value = PRICE_DEFS['bovedilla_ud']?.val || '';
     card.querySelector('.vig-mo').value         = PRICE_DEFS['mo_vig_bov']?.val  || '';
   }
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  REPELLO CEMENTICIO / ESTUCO CEMENTICIO
+// ═══════════════════════════════════════════
+function addRepEst(desc, tipo, area) {
+  nRepEst++;
+  const n = nRepEst;
+  const id = 're-' + n;
+  document.getElementById('rep-est-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head">
+        <span class="card-title">Elemento ${n}</span>
+        <button class="btn-rm" onclick="removeEl('${id}')">×</button>
+      </div>
+      <div class="fgrid">
+        <div class="fg span2">
+          <label>Tipo</label>
+          <select class="re-tipo" onchange="calcAllD()">
+            <option value="repello" ${tipo==='repello'?'selected':''}>Repello Cementicio (2cm, 1:3)</option>
+            <option value="estuco"  ${tipo==='estuco'?'selected':''}>Estuco Cementicio (5mm, 1:2)</option>
+          </select>
+        </div>
+        <div class="fg span2">
+          <label>Descripción / Área a aplicar</label>
+          <input type="text" class="re-desc" placeholder="Ej. Fachada exterior, muros baños…" value="${desc||''}" oninput="saveState()">
+        </div>
+        <div class="fg">
+          <label>Área (m²)</label>
+          <input type="number" class="re-area" placeholder="0.00" min="0" step="0.01" value="${area||''}" oninput="calcAllD()">
+        </div>
+      </div>
+      <div id="re-det-${n}" style="margin-top:8px;font-size:12px;color:var(--ink-mid);line-height:1.9;"></div>
+    </div>`);
+  calcAll();
+}
+
+// ═══════════════════════════════════════════
+//  SELLADOR HIDRÁULICO
+// ═══════════════════════════════════════════
+function addSellador(desc, tipo, area) {
+  nSell++;
+  const n = nSell;
+  const id = 'sell-' + n;
+  document.getElementById('sell-list').insertAdjacentHTML('beforeend', `
+    <div class="card" id="${id}">
+      <div class="card-head">
+        <span class="card-title">Elemento ${n}</span>
+        <button class="btn-rm" onclick="removeEl('${id}')">×</button>
+      </div>
+      <div class="fgrid">
+        <div class="fg span2">
+          <label>Tipo de sellador</label>
+          <select class="sell-tipo" onchange="calcAllD()">
+            <option value="transp" ${tipo==='transp'?'selected':''}>Transparente — para muros (rend. ~50 m²/cubeta)</option>
+            <option value="blanco" ${tipo==='blanco'?'selected':''}>Blanco — para losas/techos (rend. ~25 m²/cubeta)</option>
+          </select>
+        </div>
+        <div class="fg span2">
+          <label>Descripción / Área a tratar</label>
+          <input type="text" class="sell-desc" placeholder="Ej. Muro fachada norte, Losa planta baja…" value="${desc||''}" oninput="saveState()">
+        </div>
+        <div class="fg">
+          <label>Área (m²)</label>
+          <input type="number" class="sell-area" placeholder="0.00" min="0" step="0.01" value="${area||''}" oninput="calcAllD()">
+        </div>
+      </div>
+      <div id="sell-det-${n}" style="margin-top:8px;font-size:12px;color:var(--ink-mid);line-height:1.9;"></div>
+    </div>`);
   calcAll();
 }
 
@@ -2897,6 +2991,61 @@ function _calcAllReal() {
   const capas   = +(document.getElementById('pintura-capas')?.value)||2;
   const pintura = Math.ceil((areaRep*capas)/35);
 
+  // REPELLO CEMENTICIO / ESTUCO CEMENTICIO
+  let costoRepEst = 0;
+  (document.getElementById('rep-est-list')?.querySelectorAll('.card')||[]).forEach(c => {
+    const n    = c.id.replace('re-','');
+    const tipo = c.querySelector('.re-tipo')?.value || 'repello';
+    const ar   = +(c.querySelector('.re-area')?.value) || 0;
+    if (ar <= 0) return;
+    let sacRE, areRE, moRE, tipoLbl;
+    if (tipo === 'repello') {
+      sacRE  = Math.ceil(ar * 0.18);
+      areRE  = +(ar * 0.030).toFixed(3);
+      moRE   = ar * getPrecio('mo_rep_cem');
+      tipoLbl = 'Repello Cementicio';
+    } else {
+      sacRE  = Math.ceil(ar * 0.10);
+      areRE  = +(ar * 0.010).toFixed(3);
+      moRE   = ar * getPrecio('mo_estuco');
+      tipoLbl = 'Estuco Cementicio';
+    }
+    const matRE = sacRE * getPrecio('cemento') + areRE * getPrecio('arena_rio');
+    const subRE = matRE + moRE;
+    costoRepEst += subRE;
+    const det = document.getElementById('re-det-'+n);
+    if (det) det.innerHTML = `
+      <span>🏗️ <b>${tipoLbl}</b> — ${ar} m²</span><br>
+      <span>🧱 Cemento: <b>${sacRE} sacos</b></span> &nbsp;·&nbsp;
+      <span>🪣 Arena: <b>${areRE} m³</b></span> &nbsp;·&nbsp;
+      <span>👷 MO: <b>Q ${fmt(moRE)}</b></span> &nbsp;·&nbsp;
+      <span style="color:var(--gold);font-weight:700;">Subtotal: Q ${fmt(subRE)}</span>`;
+  });
+
+  // SELLADOR HIDRÁULICO
+  let costoSellador = 0;
+  (document.getElementById('sell-list')?.querySelectorAll('.card')||[]).forEach(c => {
+    const n    = c.id.replace('sell-','');
+    const tipo = c.querySelector('.sell-tipo')?.value || 'transp';
+    const ar   = +(c.querySelector('.sell-area')?.value) || 0;
+    if (ar <= 0) return;
+    const rend      = tipo === 'transp' ? 50 : 25;
+    const priceKey  = tipo === 'transp' ? 'sell_hidro_transp' : 'sell_hidro_blanco';
+    const cubetas   = Math.ceil(ar / rend);
+    const tipoLbl   = tipo === 'transp' ? 'Transparente (muros)' : 'Blanco (losas/techos)';
+    const matSell   = cubetas * getPrecio(priceKey);
+    const moSell    = ar * getPrecio('mo_sello_hidro');
+    const subSell   = matSell + moSell;
+    costoSellador  += subSell;
+    const det = document.getElementById('sell-det-'+n);
+    if (det) det.innerHTML = `
+      <span>🔵 <b>Sellador ${tipoLbl}</b> — ${ar} m²</span><br>
+      <span>🪣 Cubetas 19L: <b>${cubetas} ud</b> (rend. ${rend} m²/cub.)</span> &nbsp;·&nbsp;
+      <span>💰 Material: <b>Q ${fmt(matSell)}</b></span> &nbsp;·&nbsp;
+      <span>👷 MO: <b>Q ${fmt(moSell)}</b></span> &nbsp;·&nbsp;
+      <span style="color:var(--gold);font-weight:700;">Subtotal: Q ${fmt(subSell)}</span>`;
+  });
+
   // CERÁMICA PISO
   let areaCPNeta=0, costoCerMatPiso=0;
   (document.getElementById('cerpiso-list')?.querySelectorAll('.card')||[]).forEach(c => {
@@ -3223,7 +3372,9 @@ function _calcAllReal() {
                       + areRep  * getPrecio('arena_rio')
                       + pintura * getPrecio('p_latex')
                       + areaRep * getPrecio('mo_rep')
-                      + (areaRep * capas) * getPrecio('mo_pint');
+                      + (areaRep * capas) * getPrecio('mo_pint')
+                      + costoRepEst
+                      + costoSellador;
   const costoCerMat   = costoCerMatPiso + costoCerMatPared;
   const costoCeramica = costoCerMat
                       + Math.ceil(cerPiso  / 4)   * getPrecio('pegamento')
@@ -3340,6 +3491,8 @@ function _calcAllReal() {
   setQ('s-conc-costo',  costoConcreto);
   setQ('s-hierro-costo',costoHierroMat);
   setQ('s-acab-costo',  costoAcabados);
+  setQ('s-rep-est',   costoRepEst);
+  setQ('s-sell',      costoSellador);
   setQ('s-cer-mat',   costoCerMat);
   setQ('s-cer-total', costoCeramica);
   setQ('s-cd-base', costoBase); setQ('s-cd-carp', costoCarp); setQ('s-cd-herr', costoHerr); setQ('s-cd-puer', costoPuertas); setQ('s-cd-vent', costoVent);
@@ -3437,6 +3590,24 @@ function saveState() {
       vigBov:  c.querySelector('.vig-precio-bov')?.value||'',
       vigMo:   c.querySelector('.vig-mo')?.value||''
     }));
+
+    p.repEst = [];
+    (document.getElementById('rep-est-list')?.querySelectorAll('.card')||[]).forEach(c => {
+      p.repEst.push({
+        desc: c.querySelector('.re-desc')?.value||'',
+        tipo: c.querySelector('.re-tipo')?.value||'repello',
+        area: c.querySelector('.re-area')?.value||''
+      });
+    });
+
+    p.sell = [];
+    (document.getElementById('sell-list')?.querySelectorAll('.card')||[]).forEach(c => {
+      p.sell.push({
+        desc: c.querySelector('.sell-desc')?.value||'',
+        tipo: c.querySelector('.sell-tipo')?.value||'transp',
+        area: c.querySelector('.sell-area')?.value||''
+      });
+    });
 
     p.cerPiso = [];
     (document.getElementById('cerpiso-list')?.querySelectorAll('.card')||[]).forEach(c => {
@@ -3617,7 +3788,7 @@ const PRICE_DEFS = {
   pre_relleno:{ cat:'🚧 Preliminares', label:'Relleno y compactación',        unit:'m³',     val:68.01  },
   pre_ripio:       { cat:'🚧 Preliminares', label:'Extracción de ripio',           unit:'viaje',  val:366.13 },
   pre_costal_ripio:{ cat:'🚧 Preliminares', label:'Costal de ripio (extracción)', unit:'costal', val:4.19, note:'≈ 0.05 m³ por costal (50 L) · 20 costales = 1 m³' },
-  pre_flete:       { cat:'🚧 Preliminares', label:'Flete de materiales',           unit:'viaje',  val:418.29 },
+  pre_flete:       { cat:'🚧 Preliminares', label:'Flete de materiales',           unit:'viaje',  val:550.00 },
   pre_bodega: { cat:'🚧 Preliminares', label:'Bodega provisional',            unit:'global', val:1568.82},
   pre_letrina:{ cat:'🚧 Preliminares', label:'Servicios sanitarios prov.',    unit:'global', val:836.57 },
   pre_cerco:  { cat:'🚧 Preliminares', label:'Cerco provisional de obra',     unit:'ml',     val:47.04  },
@@ -3736,8 +3907,13 @@ const PRICE_DEFS = {
   vigueta_ml:  { cat:'🏗️ Concreto', label:'Vigueta pretensada T-12', unit:'ml',    val:38.00  },
   bovedilla_ud:{ cat:'🏗️ Concreto', label:'Bovedilla 25×25cm',       unit:'ud',    val:15.00  },
   mo_vig_bov:  { cat:'👷 Mano de Obra', label:'Tendido vigueta y bovedilla', unit:'m²', val:45.00 },
-  mo_rep:    { cat:'👷 Mano de Obra', label:'Repello',                unit:'m²',    val:29.30 },
-  mo_pint:   { cat:'👷 Mano de Obra', label:'Pintura',                unit:'m²',    val:15.70 },
+  mo_rep:     { cat:'👷 Mano de Obra', label:'Repello (mortero delgado)',    unit:'m²', val:29.30 },
+  mo_pint:    { cat:'👷 Mano de Obra', label:'Pintura',                       unit:'m²', val:15.70 },
+  mo_rep_cem:        { cat:'👷 Mano de Obra', label:'Repello cementicio (2cm, 1:3)',          unit:'m²',        val:40.00 },
+  mo_estuco:         { cat:'👷 Mano de Obra', label:'Estuco cementicio (5mm, 1:2)',           unit:'m²',        val:28.00 },
+  mo_sello_hidro:    { cat:'👷 Mano de Obra', label:'Aplicación sellador hidráulico',          unit:'m²',        val:18.00 },
+  sell_hidro_transp: { cat:'🏗️ Selladores',   label:'Sellador hidráulico transparente (19L)', unit:'cubeta 19L', val:450.00 },
+  sell_hidro_blanco: { cat:'🏗️ Selladores',   label:'Sellador hidráulico blanco (19L)',        unit:'cubeta 19L', val:650.00 },
   mo_cer_p:  { cat:'👷 Mano de Obra', label:'Cerámica piso',          unit:'m²',    val:47.04 },
   mo_cer_w:  { cat:'👷 Mano de Obra', label:'Cerámica pared',         unit:'m²',    val:60.64 },
   mo_elec:   { cat:'👷 Mano de Obra', label:'Instalación eléctrica',        unit:'punto', val:188.18},
@@ -4251,6 +4427,26 @@ function imprimirCotizacion() {
   if(+areaRepTxt>0){
     acabR.push(['Repello y pintura ('+gv('pintura-capas')+' manos)', areaRepTxt, 'm²', acabTotalTxt]);
   }
+  document.querySelectorAll('[id^="re-"]').forEach(c => {
+    if(!/^re-\d+$/.test(c.id)) return;
+    const n = c.id.replace('re-','');
+    const tipo = c.querySelector('.re-tipo')?.value==='repello'?'Repello Cementicio':'Estuco Cementicio';
+    const desc = c.querySelector('.re-desc')?.value||'';
+    const area = c.querySelector('.re-area')?.value||'0';
+    const detEl = document.getElementById('re-det-'+n);
+    const sub = detEl ? (detEl.textContent.match(/Subtotal:\s*Q\s*([\d,\.]+)/)?.[1]||'0') : '0';
+    if(+area>0) acabR.push([tipo+(desc?' — '+desc:''), area+' m²', '', 'Q '+sub]);
+  });
+  document.querySelectorAll('[id^="sell-"]').forEach(c => {
+    if(!/^sell-\d+$/.test(c.id)) return;
+    const n = c.id.replace('sell-','');
+    const tipo = c.querySelector('.sell-tipo')?.value==='transp'?'Sellador Transparente':'Sellador Blanco';
+    const desc = c.querySelector('.sell-desc')?.value||'';
+    const area = c.querySelector('.sell-area')?.value||'0';
+    const detEl = document.getElementById('sell-det-'+n);
+    const sub = detEl ? (detEl.textContent.match(/Subtotal:\s*Q\s*([\d,\.]+)/)?.[1]||'0') : '0';
+    if(+area>0) acabR.push([tipo+(desc?' — '+desc:''), area+' m²', '', 'Q '+sub]);
+  });
 
   // Cerámica piso
   const cpR=[];
@@ -5113,7 +5309,28 @@ function abrirListaCompras() {
   if (cemRepN>0) repItems.push({label:'Cemento (repello)',  qty: fmtN(Math.ceil(cemRepN),'sacos')});
   if (areRepN>0) repItems.push({label:'Arena (repello)',    qty: fmtN(areRepN,'m³')});
   if (pintN>0)   repItems.push({label:'Pintura látex',       qty: fmtN(Math.ceil(pintN),'galones')});
-  if (repItems.length) sections.push({ title:'🎨 Repello y Pintura', items: repItems });
+  // Repello / Estuco Cementicio
+  document.querySelectorAll('[id^="re-"]').forEach(c => {
+    if(!/^re-\d+$/.test(c.id)) return;
+    const tipo = c.querySelector('.re-tipo')?.value==='repello'?'Repello Cementicio':'Estuco Cementicio';
+    const desc = c.querySelector('.re-desc')?.value;
+    const ar = +(c.querySelector('.re-area')?.value)||0;
+    if(ar<=0) return;
+    const lbl = tipo + (desc?' ('+desc+')':'');
+    repItems.push({label: lbl, qty: fmtN(ar,'m²')});
+  });
+  // Sellador Hidráulico
+  document.querySelectorAll('[id^="sell-"]').forEach(c => {
+    if(!/^sell-\d+$/.test(c.id)) return;
+    const tipo = c.querySelector('.sell-tipo')?.value==='transp'?'Sellador transp.':'Sellador blanco';
+    const desc = c.querySelector('.sell-desc')?.value;
+    const ar = +(c.querySelector('.sell-area')?.value)||0;
+    if(ar<=0) return;
+    const rend = c.querySelector('.sell-tipo')?.value==='transp'?50:25;
+    const cub = Math.ceil(ar/rend);
+    repItems.push({label: tipo+(desc?' ('+desc+')':''), qty: fmtN(cub,'cubetas 19L')});
+  });
+  if (repItems.length) sections.push({ title:'🎨 Repello, Pintura y Selladores', items: repItems });
 
   // Cerámica
   const cerPisoN = gn('s-cer-piso'), pegPisoN = gn('s-peg-piso');
